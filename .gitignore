@@ -1,0 +1,23 @@
+# Haskell Stack build
+.stack-work/
+dist/
+dist-newstyle/
+
+# Executables
+*.exe
+*.out
+
+# Logs
+*.log
+
+# PureScript build
+output/
+.generated/
+bower_components/
+node_modules/
+.purs-repl
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
