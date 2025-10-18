@@ -1,23 +1,36 @@
-# Haskell Stack build
+# =====================
+# Haskell / Stack
+# =====================
 .stack-work/
-dist/
 dist-newstyle/
-
-# Executables
+dist/          # 如果有其他 build output
+*.hi
+*.o
 *.exe
 *.out
-
-# Logs
 *.log
 
-# PureScript build
+# =====================
+# PureScript
+# =====================
 output/
 .generated/
-bower_components/
-node_modules/
 .purs-repl
+bower_components/
+psc-package.json
 
+# =====================
+# Node / Electron
+# =====================
+node_modules/
+dist/          # Electron 打包輸出
+out/           # Electron build folder
+*.env          # 環境變數檔
+
+# =====================
 # Editor / OS
+# =====================
 .DS_Store
+*.swp
 .idea/
 .vscode/
