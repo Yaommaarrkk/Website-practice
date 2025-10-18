@@ -18,12 +18,14 @@ import Widget.DoubleInput as WDI
 import Widget.VileFile as WVF
 import Widget.DownloadFile as WDF
 import Widget.UploadFile as WUF
+import Widget.CutVideo as WCV
 
 _wfdSlot = Proxy :: Proxy "wfdSlot"
 _wdiSlot = Proxy :: Proxy "wdiSlot"
 _wvfSlot = Proxy :: Proxy "wvfSlot"
 _wdfSlot = Proxy :: Proxy "wdfSlot"
 _wufSlot = Proxy :: Proxy "wufSlot"
+_wcvSlot = Proxy :: Proxy "wcvSlot"
 
 -- Slots 所有可能的子元件的宣告清單
 -- Slot :: (Type -> Type) -> Type -> Type -> Type
@@ -35,6 +37,7 @@ type Slots =
   , wvfSlot :: WVF.Slot Unit
   , wdfSlot :: WDF.Slot Unit
   , wufSlot :: WUF.Slot Unit
+  , wcvSlot :: WCV.Slot Unit
   )
 
 type State =
@@ -53,6 +56,7 @@ data Action
   | ViewFile WVF.Output
   | DownloadFile WDF.Output
   | UploadFile WUF.Output
+  | CutVideo WCV.Output
 
 initialState :: State
 initialState = { message: "--", childInfo: "--", fileName: "--", fileContent: [] }
@@ -104,6 +108,14 @@ render state =
       --, HH.slot _wufSlot unit WUF.component unit UploadFile
       ]
     ]
+  , HH.div [ HP.style "display: flex; gap: 10px;"]
+    [ HH.div
+      [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
+      [ HH.h3_ [ HH.text "產生切片" ]
+      , HH.p_ [ HH.text ("結果：" <> state.childInfo)]
+      , HH.slot _wcvSlot unit WCV.component unit CutVideo
+      ]
+    ]
   , HH.div_
     [ HH.h3_ [ HH.text "父級總輸出" ]
     , HH.p_ [ HH.text ("父級來自元件：" <> state.childInfo)]
@@ -120,7 +132,7 @@ render state =
 makeDiv :: forall w i. Array String -> HH.HTML w i
 makeDiv strs = HH.div_ (map makeDiv_ strs)
   where
-    makeDiv_ str = HH.p_ [ HH.text str]
+    makeDiv_ str = HH.p_ [ HH.text str ]
 
 splitText :: String -> Array String
 splitText str = (split (Pattern "\n") str)
@@ -157,6 +169,11 @@ handleAction = case _ of
         H.modify_ \st -> st { message = msg, childInfo = "UploadFile" }
       WUF.Error errMsg ->
         H.modify_ \st -> st { message = errMsg, childInfo = "UploadFile" }
+
+  CutVideo output ->
+    case output of
+      WCV.Submit msg ->
+        H.modify_ \st -> st { message = msg, childInfo = "CutVideo" }
 
 main :: Effect Unit
 main = HA.runHalogenAff do

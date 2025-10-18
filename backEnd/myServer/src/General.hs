@@ -9,9 +9,9 @@ import Control.Concurrent.MVar
 import System.IO.Unsafe (unsafePerformIO)
 
 backEndProjectPath :: [Char]
-backEndProjectPath = "D:/coding/encoding/httpServer/fileUpload_2/backEnd/myServer/"
+backEndProjectPath = "D:/coding/encoding/httpServer/multipleCutVideo/backEnd/myServer/"
 frontEndProjectPath :: [Char]
-frontEndProjectPath = "D:/coding/encoding/httpServer/fileUpload_2/frontEnd/"
+frontEndProjectPath = "D:/coding/encoding/httpServer/multipleCutVideo/frontEnd/"
 
 {-# NOINLINE printLock #-}
 printLock :: MVar ()

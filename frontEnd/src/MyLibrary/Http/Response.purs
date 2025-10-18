@@ -4,23 +4,17 @@ module MyLibrary.Http.Response
   ) where
 
 import Prelude
-import Data.Tuple as Tuple
 import Data.Int (fromString)
-import Data.Array (index, length, drop, take, find)
-import Data.Char (fromCharCode)
-import Data.Functor ((<#>))
+import Data.Array (find, index)
 import Data.Maybe (Maybe(..), isJust, fromMaybe)
-import Data.String as Str
 import Data.String.CodePoints as CP
 import Data.String.CodeUnits (toCharArray)
 import Data.String.NonEmpty.CodeUnits (charAt, fromCharArray)
-import Data.String.NonEmpty.Internal (NonEmptyString(..))
+import Data.String.NonEmpty.Internal (NonEmptyString)
 
 import JSURI (decodeURIComponent)
 import Data.String.Common (split, trim)
 import Data.String.Pattern (Pattern(..))
-import Data.String.Regex as Regex
-import Data.String.Regex.Flags (noFlags)
 
 import Affjax.ResponseHeader as AXRpH
 

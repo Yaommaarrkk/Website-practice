@@ -21,16 +21,22 @@ import qualified Http
 import Error as Er
 
 import General
-returnErr = return . Just
 
 
-handleRequest :: NS.Socket -> BC.ByteString -> IO (Maybe Error)
+printErr :: NS.Socket -> Error -> IO ()
+printErr clientSocket (Error (code, msg)) = do
+  safePrint $ "error: " ++ show code
+  safePrint $ "errorMsg: " ++ msg ++ "\n"
+  Rp.respondError clientSocket (getSC code) msg
+  return ()
+
+handleRequest :: NS.Socket -> BC.ByteString -> IO [Error]
 handleRequest clientSocket req = do
   safePrint $ "Handling request: " ++ BC.unpack req
   let e_request = Rq.splitRequest req
   case e_request of
     Left request -> API.handleURL clientSocket request -- 傳入處理好的Request
-    Right err -> returnErr err
+    Right err -> return err
 
 recvRequest :: NS.Socket -> BC.ByteString -> IO BC.ByteString
 recvRequest socket buffer = do
@@ -44,15 +50,8 @@ handleClient :: NS.Socket -> IO ()
 handleClient clientSocket = do
   req <- recvRequest clientSocket BC.empty
   -- safePrint $ "Received request: " ++ BC.unpack req
-  m_Err <- handleRequest clientSocket req
-
-  case m_Err of
-    Nothing -> return ()
-    Just err -> do
-      _ <- Rp.respondMessage clientSocket Http.SC404 (BC.pack $ errMsg err)
-      safePrint $ "error: " ++ (show $ errCode err)
-      safePrint $ "errorMsg: " ++ errMsg err ++ "\n"
-      return ()
+  err <- handleRequest clientSocket req -- [Error]
+  mapM_ (printErr clientSocket) err -- safePrint & respondError
   NS.close clientSocket
 
 main :: IO ()

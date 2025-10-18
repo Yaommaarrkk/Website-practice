@@ -88,5 +88,4 @@ handleAction action = case action of
       Left errMsg -> do -- 失敗
         let message = "error: " <> printError errMsg
         H.modify_ \st -> st { fileName = message, fileContent = "" }
-        st <- H.get
         H.raise (Error message)

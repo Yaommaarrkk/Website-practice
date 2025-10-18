@@ -1,10 +1,9 @@
 module Widget.DownloadFile where
 
-import Prelude (Unit, bind, const, discard, map, pure, unit, ($), (<>), (==))
+import Prelude (Unit, bind, const, discard, pure, unit, ($), (<>))
 import Data.Either (Either(..))
 import Data.HTTP.Method (Method(..))
-import Data.Array (find)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..))
 import Data.Show (show)
 import Effect.Console (log)
 
@@ -20,7 +19,6 @@ import Halogen.HTML.Properties as HP
 import Affjax.Web as AX
 import Affjax (printError)
 import Affjax.ResponseFormat as AXRF
-import Affjax.ResponseHeader as AXRpH
 import Affjax.RequestHeader as AXRH
 import Web.File.Blob as Blob
 import Web.File.Url as Url
@@ -28,7 +26,6 @@ import Web.HTML as HTML
 import Web.HTML.HTMLDocument as HTMLDocument
 import Web.HTML.Window as HTMLWindow
 import Web.HTML.HTMLElement as HTMLElement
-import Web.HTML.HTMLBodyElement as Body
 import Web.DOM.Element as Element
 import Web.DOM.Document as DDoc
 import Web.DOM.Node as DNode
@@ -154,5 +151,5 @@ downloadFile blob filename = do
           -- 模擬按按鈕
           HTMLElement.click htmlEle
           log "Clicked the <a> element"
-          -- DNode.removeChild node1 node2
-          -- Url.revokeObjectURL url
+          DNode.removeChild node1 node2
+          Url.revokeObjectURL url

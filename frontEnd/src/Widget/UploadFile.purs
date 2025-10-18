@@ -3,8 +3,6 @@ module Widget.UploadFile where
 import Prelude
 import Data.Either (Either(..))
 import Data.HTTP.Method (Method(..))
-import Data.Array (find)
-import Data.Maybe (fromMaybe)
 
 import Effect.Aff.Class (class MonadAff)
 
@@ -16,7 +14,6 @@ import Halogen.HTML.Properties as HP
 import Affjax.Web as AX
 import Affjax (printError)
 import Affjax.ResponseFormat as AXRF
-import Affjax.ResponseHeader as AXRpH
 import Affjax.RequestHeader as AXRH
 
 type Slot id = H.Slot Query Output id
@@ -76,12 +73,11 @@ handleAction action = case action of
       }
 
     case m_respond of
-      Right respond -> do
+      Right _ -> do
         H.modify_ \st -> st { message = "上傳成功" }
         st <- H.get
         H.raise (Submit st.message)
       Left errMsg -> do -- 失敗
         let message = "error: " <> printError errMsg
         H.modify_ \st -> st { message = message }
-        st <- H.get
         H.raise (Error message)

@@ -4,8 +4,8 @@ module Http
   , StatusCode (..)
   , DispositionType (..)
   , ConDisParam(..)
+  , ConDis(..)
   , newFilenameStar
-  , renderConDis
   ) where
 
 import Network.URI.Encode (encode)
@@ -34,7 +34,12 @@ mimeType ext = case ext of
 
 data OS = Windows | MacOS | IOS | Linux | Android deriving (Show, Eq)
 
-data StatusCode = SC200 | SC400 | SC404 deriving (Show, Eq)
+data StatusCode = SC200 | SC400 | SC404 | SC500 deriving (Eq)
+instance Show StatusCode where
+  show SC200 = "200 OK"
+  show SC400 = "400 Bad Request"
+  show SC404 = "404 Not Found"
+  show SC500 = "500 Back End Error"
 
 data DispositionType = View | Download deriving (Eq)
 instance Show DispositionType where
@@ -67,5 +72,6 @@ instance Show ConDisParam where
     Size n -> "size=" ++ show n
     OtherParam k v -> k <> "=" <> v
 
-renderConDis :: [ConDisParam] -> (String, String)
-renderConDis params = ("Content-Disposition", intercalate "; " (map show params)) --插入連接字串並合併陣列
+newtype ConDis = ConDis [ConDisParam] deriving (Eq)
+instance Show ConDis where
+  show (ConDis params) = intercalate "; " (map show params) -- 插入連接字串並合併陣列

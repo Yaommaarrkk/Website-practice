@@ -2,6 +2,7 @@ module Widget.FetchDevice where
 
 import Prelude
 import Data.Either (Either(..))
+import Data.Maybe (Maybe(..))
 
 import Data.HTTP.Method (Method(..))
 
@@ -16,6 +17,9 @@ import Affjax (printError)
 import Affjax.ResponseFormat as AXRF
 import Affjax.RequestHeader as AXRH
 
+import MyLibrary.Http.JSON (ApiResponse(..), ResultResponse(..), WFD_Result(..))
+import Data.Argonaut.Decode (JsonDecodeError, decodeJson)
+
 type Slot id = H.Slot Query Output id
 
 data Query a
@@ -28,13 +32,13 @@ data Action
   = Initialize
   | ClickButton
 
-type State = { message :: String }
+type State = { message :: String, userDevice :: String }
 
 -- component負責把所有東西組合起來
 component :: forall query input m. MonadAff m => H.Component query input Output m
 component = -- (初始狀態, 渲染HTML, 處理互動)
   H.mkComponent
-    { initialState: const { message: "(NULL)" }
+    { initialState: const { message: "(NULL)", userDevice: "(NULL)" }
     , render
     -- EvalSpec = 
     -- { -- 主處理器
@@ -52,9 +56,9 @@ component = -- (初始狀態, 渲染HTML, 處理互動)
     }
 
 -- HTML元件
--- element(如div,p...) :: [HH.PropertyOrHandler i] -> [HH.HTML w i] -> HH.HTML w i
--- element(如div,p...) :: [<屬性/事件>] -> [element@<子元素>] -> element
--- 有的element不能有[<子元素>] 如input
+-- render(如div,p...) :: [HH.PropertyOrHandler i] -> [HH.HTML w i] -> HH.HTML w i
+-- render(如div,p...) :: [<屬性/事件>] -> [render@<子元素>] -> render
+-- 有的render不能有[<子元素>] 如input
 -- 如果不需要[<屬性/事件>] 可以使用帶下底線的函式版本 如div_ p_
 
 -- HH.PropertyOrHandler i :: IProp r i
@@ -112,11 +116,12 @@ handleAction action = case action of
     m_respond <- H.liftAff $ AX.request $ AX.defaultRequest
       { url = "http://127.0.0.1:10037/api/os"
       , method = Left GET
-      , responseFormat = AXRF.string -- 回傳內容用string格式解析
+      , responseFormat = AXRF.json -- 回傳內容用json格式解析
       , headers = 
         [ -- Accept 告訴後端我想要什麼類型的回應 可以多個排優先級
           -- 但後端也可能亂回 通常還需看respond的Content-Type 所以responseFormat通常要設string
-          AXRH.RequestHeader "Accept" "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+          AXRH.RequestHeader "Accept" "application/json"
+          -- AXRH.RequestHeader "Accept" "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
           -- User-Agent 通常系統自動給 除非測試時手動填
         -- , AXRH.RequestHeader "User-Agent" "Mozilla/5.0 (Linux; Android 14) MyCustomBot/1.0"
         ]
@@ -124,13 +129,23 @@ handleAction action = case action of
 
     -- Respond(status :: Int , body :: a , headers :: Headers)
     -- 本例中 responseFormat上面給了AXRF.string 所以body要當成字串解析
+    
+    -- modify 更新狀態 return新狀態
+    -- modify_ 更新狀態 不return
+    -- get return整個state
+    -- gets 讀取state並套用函式 通常用於取state的某個成員
     case m_respond of
-      -- modify 更新狀態 return新狀態
-      -- modify_ 更新狀態 不return
-      -- get return整個state
-      -- gets 讀取state並套用函式 通常用於取state的某個成員
-      Right respond -> H.modify_ \st -> st { message = respond.body } -- 成功 -> 更新瀏覽器的message
-      Left err -> H.modify_ \st -> st { message = "error: " <> printError err } -- 失敗
-
+      Right respond ->  -- 成功 -> 更新瀏覽器的
+        case decodeJson respond.body :: Either JsonDecodeError ApiResponse of
+          Left decodeErr -> H.modify_ \st -> st { message = st.message <> "JSON decode error: " <> show decodeErr } -- 解碼失敗
+          Right (ApiResponse result) ->
+            case result.success of -- respond是否成功 包含404和業務邏輯錯誤
+              true ->
+                case result.result of
+                  Just (APIFetchDevice (WFD_Result rr)) -> H.modify_ \st -> st { message = result.message, userDevice = rr.userDevice }
+                  Just rr -> H.modify_ \st -> st { message = st.message <> "result.result type error" }
+                  Nothing -> H.modify_ \st -> st { message = st.message <> "can't get tempDirPath" }
+              false -> H.modify_ \st -> st { message = st.message <> "respond error: " <> result.message }
+      Left err -> H.modify_ \st -> st { message = st.message <> "internet error: " <> printError err } -- 網路失敗
     st <- H.get
     H.raise (Submit st.message)

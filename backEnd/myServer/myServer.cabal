@@ -26,6 +26,7 @@ executable myServer
     Error
     General
     Http
+    Cut.MakeCuts
   build-depends:       base >=4.7 && <5,
                        bytestring,
                        filepath,
@@ -35,6 +36,10 @@ executable myServer
                        containers,
                        text,
                        uri-encode,
+                       aeson,
+                       transformers >=0.5,
+                       process >=1.6,
+
   ghc-options:         -Wall
                        -Wcompat
                        -Widentities

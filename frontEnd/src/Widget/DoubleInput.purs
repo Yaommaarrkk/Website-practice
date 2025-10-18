@@ -85,13 +85,14 @@ handleAction action = case action of
         ]
       }
 
-    st <- H.get
     case m_respond of
       Right respond -> do
         H.modify_ \st -> st { message = respond.body }
+        st <- H.get
         H.raise (Submit st.multiple respond.body)
       Left err -> do -- 失敗
         let message = "error: " <> printError err
-        H.modify_ \st -> st { message = message }
+        H.modify_ \st -> old_st { message = message }
+        st <- H.get
         H.raise (Submit st.multiple message)
   
