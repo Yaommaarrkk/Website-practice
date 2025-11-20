@@ -44,7 +44,7 @@ data Response = Response
 data ResponseJSON a = ResponseJSON
   { success :: Bool
   , message :: String
-  , r_type :: String
+  , r_type :: String -- 自訂type 給前端對應result用
   , result :: Maybe a
   } deriving (Show, Eq, Generic) -- Generic允許編譯器自動推導型別
 instance ToJSON a => ToJSON (ResponseJSON a) -- 限制當a可以ToJSON時，(ResponseJSON a)也可以ToJSON

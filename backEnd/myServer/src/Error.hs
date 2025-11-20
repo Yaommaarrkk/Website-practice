@@ -21,6 +21,10 @@ data ErrorCode
 
 newtype Error = Error (ErrorCode, String)
 
+instance Show Error where
+  show :: Error -> String
+  show (Error (code, msg)) = "error: " ++ show code ++ ", errorMsg: " ++ msg ++ "\n"
+
 class GetSC a where
   getSC :: a -> Http.StatusCode
 instance GetSC ErrorCode where

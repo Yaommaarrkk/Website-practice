@@ -39,6 +39,7 @@ executable myServer
                        aeson,
                        transformers >=0.5,
                        process >=1.6,
+                       time,
 
   ghc-options:         -Wall
                        -Wcompat

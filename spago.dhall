@@ -17,10 +17,12 @@ to generate this file without the comments in this block.
   , "affjax-web"
   , "argonaut"
   , "argonaut-codecs"
+  , "argonaut-core"
   , "arrays"
   , "console"
   , "effect"
   , "either"
+  , "foldable-traversable"
   , "halogen"
   , "http-methods"
   , "integers"
@@ -28,13 +30,13 @@ to generate this file without the comments in this block.
   , "js-promise-aff"
   , "js-uri"
   , "maybe"
+  , "node-path"
   , "prelude"
   , "strings"
   , "tuples"
   , "web-dom"
   , "web-file"
   , "web-html"
-  , "argonaut-core"
   ]
 , packages = ./packages.dhall
 , sources = [ "frontend/src/**/*.purs", "frontend/test/**/*.purs" ]

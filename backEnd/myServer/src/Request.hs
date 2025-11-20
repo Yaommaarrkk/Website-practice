@@ -19,7 +19,7 @@ module Request
   , parseUserAgent
   , parseQuery
   ) where
-    
+
 import Data.Maybe (catMaybes, mapMaybe)
 import Data.List.Split (splitOn)
 import Text.Read (readMaybe)
@@ -28,12 +28,12 @@ import Data.ByteString ()
 import qualified Data.ByteString.Char8 as BC
 import Error as Er
 
-data Request = Request
+data Request = Request 
   { method :: Method
   , path :: Path
   , headers :: Headers
   , m_bodies :: Maybe Bodies
-  }
+  } deriving (Show)
 data Method = GET | POST | Unknown deriving (Show, Eq)
 newtype Path = Path [String] deriving (Show, Eq)
 type Headers = [Header]
@@ -123,22 +123,22 @@ newContentDisposition str =
 
 parseHeaders :: [BC.ByteString] -> Headers
 parseHeaders headersStrList = catMaybes $ map parseHeader headersStrList -- catMaybes 把Nothing的項篩掉 並解掉Just層
-  where 
+  where
     parseHeader :: BC.ByteString -> Maybe Header
     parseHeader str =
       let (key, rest) = BC.break (== ':') str
       in if BC.null rest then Nothing else Just (key, BC.drop 2 rest)
 
-splitHeadersAndBody :: [BC.ByteString] -> (Headers, Body)
-splitHeadersAndBody xs = (parseHeaders headersStrList, body)
+splitHeadersAndBody :: [BC.ByteString] -> (Headers, Maybe Bodies)
+splitHeadersAndBody xs = (parseHeaders headersStrList, m_bodies)
   where
     -- break會把不滿足條件的切開 直到第一個滿足條件的
     -- 所以在這裡 rest的第一項是空白行
-    (headersStrList, xxs) = break (\line -> line == BC.empty) xs
-    body = case xxs of -- 濾掉空白行
-      [] -> BC.empty
-      (_:bodies) -> BC.concat bodies
-            
+    (headersStrList, xxs) = break (\line -> BC.all (`elem` "\r\n") line) xs
+    m_bodies = case xxs of
+      [] -> Nothing
+      (_:bodies) -> Just bodies  -- 濾掉空白行
+
 
 splitRequest :: BC.ByteString -> Either Request [Er.Error]
 splitRequest req = do
@@ -146,18 +146,19 @@ splitRequest req = do
   if length reqList < 3 then -- 處理firstLine參數缺失
     Right [Error (Req_formatErr, "request format incorrect")]
   else case reqList of
-    (firstLine:xs) -> 
+    (firstLine:xs) ->
       case BC.words firstLine of
         -- 處理firstLine
-        (method_ : path_ : _) -> Left request -- method=="GET" path=="/hello"
+        (method_ : path_ : _) ->
+          Left request -- method=="GET" path=="/hello"
           where
             _method = case BC.unpack method_ of
               "GET" -> GET
               "POST" -> POST
               _ -> Unknown
             _path = parsePath path_
-            (_headers, bodies) = splitHeadersAndBody xs
-            request = Request { method = _method, path = _path, headers = _headers, m_bodies = Just [bodies] }
+            (_headers, _m_bodies) = splitHeadersAndBody xs
+            request = Request { method = _method, path = _path, headers = _headers, m_bodies = _m_bodies }
         _ -> Right [Er.Error (Req_firstLineFormatErr, "request-firstLine format incorrect")]
     _ -> Right [Er.Error (Req_formatErr, "request format incorrect")]
 
@@ -186,7 +187,7 @@ getBoundary _headers =
           else Nothing
     Nothing -> Nothing
 
-splitMultipart :: BC.ByteString -> BC.ByteString -> [(Headers, Body)]
+splitMultipart :: BC.ByteString -> BC.ByteString -> [(Headers, Maybe Bodies)]
 splitMultipart boundary bodyWithEnd = map splitHeadersAndBody $ map BC.lines parts
   -- 在內文要拿來比對的boundary會比header的boundary開頭多"--"
   where
@@ -195,11 +196,11 @@ splitMultipart boundary bodyWithEnd = map splitHeadersAndBody $ map BC.lines par
     (body, _) = BC.breakSubstring endMarker bodyWithEnd
     parts = filter (not . BC.null) $ splitSubstring splitMarker body
 
-newFormPart :: (Headers, Body) -> Maybe FormPart
-newFormPart (_headers, body) = 
+newFormPart :: (Headers, Maybe Bodies) -> Maybe FormPart
+newFormPart (_headers, m_bodies) =
   case lookupBS _headers (BC.pack "Content-Disposition") of  -- 每段必須包含Content-Disposition 沒有就直接回傳Nothing
     Nothing -> Nothing
-    Just cdStr -> 
+    Just cdStr ->
       let
         cd = newContentDisposition cdStr
         (_, cds) = cd
@@ -213,11 +214,15 @@ newFormPart (_headers, body) =
               , fi_fileName  = BC.unpack _fileName
               , fi_content   = body
               }
-            Nothing -> 
+            Nothing ->
               Just $ FormField
               { fie_fieldName = BC.unpack name
               , fie_value   = BC.unpack body
               }
+  where
+    body = maybe BC.empty BC.concat m_bodies
+
+--decodeJSON
 
 parseMultiBody :: Headers -> Maybe Bodies -> [FormPart]
 parseMultiBody _headers (Just body) = catMaybes $ formParts

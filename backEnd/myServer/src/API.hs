@@ -5,14 +5,16 @@ module API
 import Data.List (isInfixOf)
 import Data.List.Split (splitOn)
 import Data.Maybe (fromMaybe, catMaybes)
+import Data.Either (lefts)
 import Text.Read (readMaybe)
 import System.Directory (doesFileExist, listDirectory)
 import System.FilePath (joinPath)
 import qualified Data.Map as M
-import Data.Aeson (Value, object, (.=))
+import Data.Aeson (Value, object, (.=), decode, encode)
 import Data.Aeson.Key (fromString)
     
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy.Char8 as BLC
 import qualified Data.ByteString.Char8 as BC
 import qualified Network.Socket as NS
 import Control.Monad.Trans.Except (runExceptT)
@@ -66,7 +68,7 @@ handleRequestArgs clientSocket apiRoute rawArgs (Rq.Request method _ headers m_b
         Left err -> return [err] -- 參數檢查沒通過
         Right argValues ->
           case method of
-            Rq.GET -> func clientSocket argValues (headers, Nothing) -- 直接拿路由表的method呼叫
+            Rq.GET -> func clientSocket argValues (headers, m_bodies) -- 直接拿路由表的method呼叫
             Rq.POST -> func clientSocket argValues (headers, m_bodies)
             _ -> return [Error (UnexpectedError,"handleRequestArgs Unknown func")]
 
@@ -168,30 +170,52 @@ saveFile _ (Rq.FormFile _ fileName content) = do
 saveFile _ _ = return $ Just $ Error (UnexpectedError, "api/handleUploadFile - saveFile\n Pattern matching failed")
 
 handleMakeCuts :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> IO [Error]
-handleMakeCuts clientSocket [AV_String filePathAndArgs] _ = do
-  result <- runExceptT (MC.makeCuts path cf)
-  case result of
-    Left err -> return [err]
-    Right _  -> return []
+handleMakeCuts clientSocket [AV_String filePathAndArgs] (_, m_bodies) = do
+  safePrint "\n[INFO] [filePaths]\n[From: API.handleMakeCuts]"
+  safePrint $ "m_filePaths: " ++ show m_filePaths
+  case m_filePaths of
+    Nothing -> return [Error (ApiCut_err, "api/handleMakeCuts missing filePaths in body")]
+    Just filePaths -> do
+      (tempDir, errs) <- MC.makeCuts filePaths cf
+      let
+        myVars = M.fromList [(fromString "tempDirPath", tempDir), (fromString "error", show errs)]
+        json :: Rp.ResponseJSON Value
+        json = Rp.ResponseJSON
+          { Rp.success = case errs of
+              [] -> True
+              _  -> False
+          , Rp.message = "Temp dir is: " ++ tempDir
+          , Rp.r_type = "APIMakeCuts"
+          , Rp.result  = Just $ object (map (\(k,v) -> k .= v) (M.toList myVars))
+          }
+      -- safePrint "\n[INFO] [response]\n[From: API.handleMakeCuts]"
+      -- safePrint $ "Response JSON: " ++ BLC.unpack (encode json)
+      Rp.respondJSON clientSocket json Http.SC200
+
   where
-    path = "" -- 要改成從body讀
     queries = case splitOn "?" filePathAndArgs of
       [] -> []
       [_] -> []
       [_, style] -> Rq.parseQuery style
+    m_filePaths = case m_bodies of -- 理論上m_bodies(JSON格式的Body都)恰有一個成員
+      Just bodies ->
+        case bodies of
+          (b:_) -> (decode . BC.fromStrict) b :: Maybe [String] -- 在這裡解析JSON 而不是在Request
+          _ -> Nothing
+      Nothing -> Nothing
     cf = MC.CutsFormat (Rq.lookupInt queries "fps") (Rq.lookupInt queries "scale")
 handleMakeCuts _ _ _ = do
   return [Error (UnexpectedError, "api/handleMakeCuts Pattern matching failed")]
 
 handleUploadFile :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> IO [Error]
-handleUploadFile clientSocket _ (headers, m_bodies) = do
+handleUploadFile clientSocket _ (headers, m_body) = do
   results <- mapM (saveFile clientSocket) onlyFiles  -- IO [Maybe Error]
   case catMaybes results of -- 把Nothing篩掉
       [] -> Rp.respondMessage clientSocket True "upload file success"
       err -> return err
   where
     -- parseMultiBody :: Request -> [FormPart]
-    formParts = Rq.parseMultiBody headers m_bodies
+    formParts = Rq.parseMultiBody headers m_body
     -- 篩掉 不是FormFile 和 沒有fileName
     onlyFiles = [ f | f@(Rq.FormFile fileName _ _) <- formParts
                 , not $ null fileName ]

@@ -32,10 +32,14 @@ printErr clientSocket (Error (code, msg)) = do
 
 handleRequest :: NS.Socket -> BC.ByteString -> IO [Error]
 handleRequest clientSocket req = do
-  safePrint $ "Handling request: " ++ BC.unpack req
+  -- safePrint "\n[INFO] [OriginRequest]\n[From: Main.handleRequest]"
+  -- safePrint $ "Handling request: " ++ BC.unpack req
   let e_request = Rq.splitRequest req
   case e_request of
-    Left request -> API.handleURL clientSocket request -- 傳入處理好的Request
+    Left request -> do
+      -- safePrint "\n[INFO] [ParsedRequest]\n[From: Main.handleRequest]"
+      -- safePrint $ show request
+      API.handleURL clientSocket request -- 傳入處理好的Request
     Right err -> return err
 
 recvRequest :: NS.Socket -> BC.ByteString -> IO BC.ByteString

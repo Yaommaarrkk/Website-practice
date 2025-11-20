@@ -72,43 +72,43 @@ component = -- (初始狀態, 怎麼渲染畫面, 處理互動, 外部事件)
 render :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m
 render state =
   HH.div_
-  [ HH.h2_ [ HH.text "歡迎來到首頁" ]
-  , HH.div [ HP.style "display: flex; gap: 10px;"] -- flex 橫向排列
-    [ HH.div
-      [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
-      [ HH.h3_ [ HH.text "我的裝置：" ]
-      , HH.slot _wfdSlot unit WFD.component unit (FetchDevice unit)
-      ]
-    , HH.div
-      [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
-      [ HH.h3_ [ HH.text "重複每個字元 - 重複2次" ]
-      , HH.slot _wdiSlot 0 WDI.component { multiple: 2 } (DoubleInput 0)
-      ]
-    , HH.div
-      [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
-      [ HH.h3_ [ HH.text "重複每個字元 - 重複3次" ]
-      , HH.slot _wdiSlot 1 WDI.component { multiple: 3 } (DoubleInput 1)
-      ]
-    ]
-  , HH.div [ HP.style "display: flex; gap: 10px;"]
-    [ HH.div
-      [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
-      [ HH.h3_ [ HH.text "查看檔案" ]
-      , HH.p_ [ HH.text ("內容：" <> state.childInfo)]
-      , HH.slot _wvfSlot unit WVF.component unit ViewFile
-      ]
-    , HH.div
-      [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
-      [ HH.h3_ [ HH.text "下載檔案" ]
-      , HH.slot _wdfSlot unit WDF.component unit DownloadFile
-      ]
-    , HH.div
-      [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
-      [ HH.h3_ [ HH.text "上傳檔案" ]
-      --, HH.slot _wufSlot unit WUF.component unit UploadFile
-      ]
-    ]
-  , HH.div [ HP.style "display: flex; gap: 10px;"]
+  -- [ HH.h2_ [ HH.text "歡迎來到首頁" ]
+  -- , HH.div [ HP.style "display: flex; gap: 10px;"] -- flex 橫向排列
+  --   [ HH.div
+  --     [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
+  --     [ HH.h3_ [ HH.text "我的裝置：" ]
+  --     , HH.slot _wfdSlot unit WFD.component unit (FetchDevice unit)
+  --     ]
+  --   , HH.div
+  --     [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
+  --     [ HH.h3_ [ HH.text "重複每個字元 - 重複2次" ]
+  --     , HH.slot _wdiSlot 0 WDI.component { multiple: 2 } (DoubleInput 0)
+  --     ]
+  --   , HH.div
+  --     [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
+  --     [ HH.h3_ [ HH.text "重複每個字元 - 重複3次" ]
+  --     , HH.slot _wdiSlot 1 WDI.component { multiple: 3 } (DoubleInput 1)
+  --     ]
+  --   ]
+  -- , HH.div [ HP.style "display: flex; gap: 10px;"]
+  --   [ HH.div
+  --     [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
+  --     [ HH.h3_ [ HH.text "查看檔案" ]
+  --     , HH.p_ [ HH.text ("內容：" <> state.childInfo)]
+  --     , HH.slot _wvfSlot unit WVF.component unit ViewFile
+  --     ]
+  --   , HH.div
+  --     [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
+  --     [ HH.h3_ [ HH.text "下載檔案" ]
+  --     , HH.slot _wdfSlot unit WDF.component unit DownloadFile
+  --     ]
+  --   , HH.div
+  --     [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
+  --     [ HH.h3_ [ HH.text "上傳檔案" ]
+  --     --, HH.slot _wufSlot unit WUF.component unit UploadFile
+  --     ]
+  --   ]
+  [ HH.div [ HP.style "display: flex; gap: 10px;"]
     [ HH.div
       [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
       [ HH.h3_ [ HH.text "產生切片" ]
@@ -116,17 +116,17 @@ render state =
       , HH.slot _wcvSlot unit WCV.component unit CutVideo
       ]
     ]
-  , HH.div_
-    [ HH.h3_ [ HH.text "父級總輸出" ]
-    , HH.p_ [ HH.text ("父級來自元件：" <> state.childInfo)]
-    , HH.p_ [ HH.text ("父級結果：" <> state.message)]
-    , HH.p_ [ HH.text ("檔名：" <> state.fileName)]
-    , HH.p_
-      [
-        HH.text ("檔案內容：\n")
-        , makeDiv state.fileContent
-      ]
-    ]
+  -- , HH.div_
+  --   [ HH.h3_ [ HH.text "父級總輸出" ]
+  --   , HH.p_ [ HH.text ("父級來自元件：" <> state.childInfo)]
+  --   , HH.p_ [ HH.text ("父級結果：" <> state.message)]
+  --   , HH.p_ [ HH.text ("檔名：" <> state.fileName)]
+  --   , HH.p_
+  --     [
+  --       HH.text ("檔案內容：\n")
+  --       , makeDiv state.fileContent
+  --     ]
+  --   ]
   ]
 
 makeDiv :: forall w i. Array String -> HH.HTML w i
