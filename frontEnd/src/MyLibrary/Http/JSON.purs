@@ -1,5 +1,12 @@
 module MyLibrary.Http.JSON
-  ( ApiResponse(..), ResultResponse(..), WFD_Result(..), WDI_Result(..), WVF_Result(..), WCV_CV_Result(..), WCV_MC_Result(..)
+  ( ApiResponse(..)
+  , ResultResponse(..)
+  , WFD_Result(..)
+  , WDI_Result(..)
+  , WVF_Result(..)
+  , WCV_CV_Result(..)
+  , WCV_MC_Result(..)
+  , WCV_CCC_Result(..)
   ) where
 
 import Prelude
@@ -13,6 +20,7 @@ newtype WDI_Result = WDI_Result { result :: String }
 newtype WVF_Result = WVF_Result { fileName :: String, fileContent :: String }
 newtype WCV_CV_Result = WCV_CV_Result { tempDirPath :: String }
 newtype WCV_MC_Result = WCV_MC_Result { tempDirPath :: String, error :: String }
+newtype WCV_CCC_Result = WCV_CCC_Result { error :: String }
 
 data ResultResponse
   = APIFetchDevice WFD_Result
@@ -20,6 +28,7 @@ data ResultResponse
   | APIViewFile WVF_Result --好像未啟用
   | APICutVideo WCV_CV_Result --未啟用
   | APIMakeCuts WCV_MC_Result
+  | APICutCutCut WCV_CCC_Result
 
 newtype ApiResponse = ApiResponse
   { message :: String
@@ -33,6 +42,7 @@ decodeResult "APIDoubleInput" json = APIDoubleInput <$> eitherToMaybe (decodeJso
 decodeResult "APIReadFile"    json = APIViewFile <$> eitherToMaybe (decodeJson json)
 decodeResult "APICutVideo"    json = APICutVideo <$> eitherToMaybe (decodeJson json)
 decodeResult "APIMakeCuts"    json = APIMakeCuts <$> eitherToMaybe (decodeJson json)
+decodeResult "APICutCutCut"    json = APICutCutCut <$> eitherToMaybe (decodeJson json)
 decodeResult _ _ = Nothing
 
 eitherToMaybe :: forall a b. Either a b -> Maybe b
@@ -70,6 +80,12 @@ instance decodeMakeCuts :: DecodeJson WCV_MC_Result where
     tempDirPath <- obj .: "tempDirPath"
     error <- obj .: "error"
     pure $ WCV_MC_Result { tempDirPath, error }
+
+instance decodeCutCutCut :: DecodeJson WCV_CCC_Result where
+  decodeJson json = do
+    obj <- decodeJson json
+    error <- obj .: "error"
+    pure $ WCV_CCC_Result { error }
 
 instance decodeApiResponse :: DecodeJson ApiResponse where -- DecodeJson會自動找到對應的解碼器
   decodeJson json = do

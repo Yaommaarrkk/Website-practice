@@ -30,7 +30,6 @@ to generate this file without the comments in this block.
   , "js-promise-aff"
   , "js-uri"
   , "maybe"
-  , "node-path"
   , "prelude"
   , "strings"
   , "tuples"

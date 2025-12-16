@@ -40,6 +40,7 @@ executable myServer
                        transformers >=0.5,
                        process >=1.6,
                        time,
+                       regex-tdfa,
 
   ghc-options:         -Wall
                        -Wcompat

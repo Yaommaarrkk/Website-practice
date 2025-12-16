@@ -10,7 +10,7 @@ import Text.Read (readMaybe)
 import System.Directory (doesFileExist, listDirectory)
 import System.FilePath (joinPath)
 import qualified Data.Map as M
-import Data.Aeson (Value, object, (.=), decode, encode)
+import Data.Aeson (Value, object, (.=), encode)
 import Data.Aeson.Key (fromString)
     
 import qualified Data.ByteString as BS
@@ -42,6 +42,7 @@ apiRouteTable =
   , ((Rq.POST, BC.pack "file/upload"),  [], API.handleUploadFile)
     --實際功能
   , ((Rq.POST, BC.pack "makeCuts"),  [AT_String], API.handleMakeCuts)
+  , ((Rq.POST, BC.pack "cutCutCut"),  [AT_String], API.handleCutCutCut)
   ]
 
 parseArgsDynamic :: [String] -> [ArgType] -> Either Error [ArgValue]
@@ -94,6 +95,7 @@ handleURL clientSocket request@(Rq.Request method path headers _) =
         -- API POST
         Rq.Path ("api" : "file" : "upload" : args) -> handleRequestArgs clientSocket "file/upload" args request
         Rq.Path ("api" : "cut" : "makeCuts" : args) -> handleRequestArgs clientSocket "makeCuts" args request
+        Rq.Path ("api" : "cut" : "cutCutCut" : args) -> handleRequestArgs clientSocket "cutCutCut" args request
         Rq.Path ("api" : _) -> return [Error (Api_funcOrArgErr, "api-post Can't find function")]
         _ -> return [Error (Api_funcOrArgErr, "handleURL POST should add \"api/\"")]
     _ -> return [Error (UnexpectedError, "handleURL Unexpected Request-Method")]
@@ -171,11 +173,11 @@ saveFile _ _ = return $ Just $ Error (UnexpectedError, "api/handleUploadFile - s
 
 handleMakeCuts :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> IO [Error]
 handleMakeCuts clientSocket [AV_String filePathAndArgs] (_, m_bodies) = do
-  safePrint "\n[INFO] [filePaths]\n[From: API.handleMakeCuts]"
-  safePrint $ "m_filePaths: " ++ show m_filePaths
-  case m_filePaths of
+  case MC.get_m_filePaths m_bodies of
     Nothing -> return [Error (ApiCut_err, "api/handleMakeCuts missing filePaths in body")]
     Just filePaths -> do
+      safePrint "\n[INFO] [filePaths]\n[From: API.handleMakeCuts]"
+      safePrint $ "filePaths: " ++ show filePaths
       (tempDir, errs) <- MC.makeCuts filePaths cf
       let
         myVars = M.fromList [(fromString "tempDirPath", tempDir), (fromString "error", show errs)]
@@ -191,21 +193,41 @@ handleMakeCuts clientSocket [AV_String filePathAndArgs] (_, m_bodies) = do
       -- safePrint "\n[INFO] [response]\n[From: API.handleMakeCuts]"
       -- safePrint $ "Response JSON: " ++ BLC.unpack (encode json)
       Rp.respondJSON clientSocket json Http.SC200
-
   where
-    queries = case splitOn "?" filePathAndArgs of
-      [] -> []
-      [_] -> []
-      [_, style] -> Rq.parseQuery style
-    m_filePaths = case m_bodies of -- 理論上m_bodies(JSON格式的Body都)恰有一個成員
-      Just bodies ->
-        case bodies of
-          (b:_) -> (decode . BC.fromStrict) b :: Maybe [String] -- 在這裡解析JSON 而不是在Request
-          _ -> Nothing
-      Nothing -> Nothing
+    queries = Rq.parseQuery $ Rq.getQueryString filePathAndArgs
     cf = MC.CutsFormat (Rq.lookupInt queries "fps") (Rq.lookupInt queries "scale")
 handleMakeCuts _ _ _ = do
   return [Error (UnexpectedError, "api/handleMakeCuts Pattern matching failed")]
+
+handleCutCutCut :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> IO [Error]
+handleCutCutCut clientSocket [AV_String filePathAndArgs] (_, m_bodies) = do
+  safePrint "\n[INFO] [op_str ed_str]\n[From: API.handleCutCutCut]"
+  safePrint $ "cf(op, ed): " ++ show cf
+  
+  case MC.get_m_filePaths m_bodies of
+    Nothing -> return [Error (ApiCut_err, "api/handleCutCutCut missing filePaths in body")]
+    Just filePaths -> do
+      (successCount, errs) <- MC.cutCutCut filePaths cf
+      let
+        myVars = M.fromList [ (fromString "error", show errs) ]
+        json :: Rp.ResponseJSON Value
+        json = Rp.ResponseJSON
+          { Rp.success = case errs of
+              [] -> True
+              _  -> False
+          , Rp.message = "Success: " ++ show successCount ++ "/" ++ show (length filePaths)
+          , Rp.r_type = "APICutCutCut"
+          , Rp.result  = Just $ object (map (\(k,v) -> k .= v) (M.toList myVars))
+          }
+      safePrint "\n[INFO] [response]\n[From: API.handleCutCutCut]"
+      safePrint $ "Response JSON: " ++ BLC.unpack (encode json)
+      Rp.respondJSON clientSocket json Http.SC200
+  where
+    queries = Rq.parseQuery $ Rq.getQueryString filePathAndArgs
+    cf = (lookup "op" queries, lookup "ed" queries) :: MC.CccFormat
+handleCutCutCut _ _ _ = do
+  return [Error (UnexpectedError, "api/handleCutCutCut Pattern matching failed")]
+
 
 handleUploadFile :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> IO [Error]
 handleUploadFile clientSocket _ (headers, m_body) = do

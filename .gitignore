@@ -34,3 +34,5 @@ out/           # Electron build folder
 *.swp
 .idea/
 .vscode/
+
+temp/

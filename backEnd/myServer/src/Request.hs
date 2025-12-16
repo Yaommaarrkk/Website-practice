@@ -18,13 +18,14 @@ module Request
   , splitRequest
   , parseUserAgent
   , parseQuery
+  , getQueryString
   ) where
 
 import Data.Maybe (catMaybes, mapMaybe)
 import Data.List.Split (splitOn)
 import Text.Read (readMaybe)
+import Data.Aeson (decode)
 
-import Data.ByteString ()
 import qualified Data.ByteString.Char8 as BC
 import Error as Er
 
@@ -169,6 +170,12 @@ parseQuery qs = mapMaybe parseKV (splitOn "&" qs) -- mapMaybe只留下Just
     parseKV s = case splitOn "=" s of
                   [k,v] -> Just (k,v)
                   _     -> Nothing
+
+getQueryString :: String -> String
+getQueryString url = case splitOn "?" url of
+  [_] -> ""
+  [_, qs] -> qs
+  _ -> ""
 
 -- 以下是處理POST的Multipart的HTTP解析
 getBoundary :: Headers -> Maybe BC.ByteString
