@@ -107,7 +107,7 @@ makeCutsSingle input cf tempDir = do
 cutCutCut :: [FilePath] -> CccFormat -> IO (Int, [Error]) -- 回傳tempDir
 cutCutCut inputs cf = do
   now <- liftIO getCurrentTime
-  let timestamp = formatTime defaultTimeLocale "%makeCuts__Y%m%d-%H%M%S" now
+  let timestamp = formatTime defaultTimeLocale "cutCutCut__%Y%m%d-%H%M%S" now
       tempDir   = projectPath </> "temp" </> timestamp
   liftIO $ createDirectoryIfMissing True tempDir
 
@@ -129,7 +129,7 @@ cutCutCutSingle input cf tempDir = do
     ss = if getOp cf == "" then [] else ["-ss", getOp cf]
     to = if getEd cf == "" then [] else ["-to", getEd cf]
     --參數(輸入檔名, 去頭秒數, 去尾秒數, 輸出檔名)
-    args = ["-n"] ++ ss ++ to ++ ["-i", input, "-c", "copy", tempDir ++ takeFileName input]
+    args = ["-n"] ++ ss ++ to ++ ["-i", input, "-c", "copy", tempDir ++ "/" ++ takeFileName input]
   
   liftIO (try (callProcess "ffmpeg" args)) >>= \case
     Left err -> throwE $ Error (ApiCut_err, "error: ffmpeg 剪切失敗\nerrorMessage: " ++ show (err :: SomeException))

@@ -64,7 +64,7 @@ initialState = { message: "--", childInfo: "--", fileName: "--", fileContent: []
 component :: forall query input m. MonadAff m => H.Component query input Output m
 component = -- (初始狀態, 怎麼渲染畫面, 處理互動, 外部事件)
   H.mkComponent
-    { initialState: const initialState
+    { initialState: \_ -> initialState
     , render
     , eval: H.mkEval H.defaultEval { handleAction = handleAction }  -- handleAction: 事件的主處理器
     }
@@ -128,6 +128,14 @@ render state =
   --     ]
   --   ]
   ]
+  where
+    cccSlotArgs = 
+      { filePaths: []
+      , isOpTimeEnable: false
+      , opTime: ""
+      , isEdTimeEnable: false
+      , edTime: ""
+      }
 
 makeDiv :: forall w i. Array String -> HH.HTML w i
 makeDiv strs = HH.div_ (map makeDiv_ strs)

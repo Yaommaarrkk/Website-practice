@@ -127,3 +127,4 @@ parseConDis conDisStr =
           Just s -> fromString $ stripQuotes s
           Nothing -> Nothing -- 不會發生 因為前面有檢查isJust
         _ -> Nothing
+

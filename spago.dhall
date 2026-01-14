@@ -36,6 +36,9 @@ to generate this file without the comments in this block.
   , "web-dom"
   , "web-file"
   , "web-html"
+  , "bifunctors"
+  , "newtype"
+  , "transformers"
   ]
 , packages = ./packages.dhall
 , sources = [ "frontend/src/**/*.purs", "frontend/test/**/*.purs" ]

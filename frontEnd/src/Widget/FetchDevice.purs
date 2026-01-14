@@ -20,10 +20,7 @@ import Affjax.RequestHeader as AXRH
 import MyLibrary.Http.JSON (ApiResponse(..), ResultResponse(..), WFD_Result(..))
 import Data.Argonaut.Decode (JsonDecodeError, decodeJson)
 
-type Slot id = H.Slot Query Output id
-
-data Query a
-  = QueryUnit
+type Slot id = forall query. H.Slot query Output id
 
 data Output
   = Submit String

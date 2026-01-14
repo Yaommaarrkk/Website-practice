@@ -16,12 +16,14 @@ import Data.HTTP.Method (Method(..))
 
 import Effect.Aff.Class (class MonadAff)
 import Promise.Aff (toAff)
-
+import Data.Bifunctor (lmap)
+import Control.Monad.Except.Trans (ExceptT(..), except, runExceptT, throwError, lift)
 
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
+import Type.Proxy (Proxy(..))
 
 import Affjax.Web as AX
 import Affjax (printError)
@@ -30,7 +32,7 @@ import Affjax.RequestHeader as AXRH
 import Affjax.RequestBody as AXRB
 import Effect.Console (log, logShow)
 
-import MyLibrary.Http.JSON (ApiResponse(..), ResultResponse(..), WCV_MC_Result(..), WCV_CCC_Result(..))
+import MyLibrary.Http.JSON (ApiResponse(..), ResultResponse(..), WCV_MC_Result(..))
 import MyLibrary.FileSystem.FileSystem as MyFs
 import Data.Argonaut.Decode (JsonDecodeError, decodeJson)
 import Data.Argonaut.Core as JSON
@@ -39,12 +41,16 @@ import Affjax.RequestBody (json)
 import FFI.Electron.Dialogs (openFile)
 import FFI.JS.FileSystem (readDir)
 
-data Radio = Radio Boolean String Boolean String
 
-type Slot id = H.Slot Query Output id
+import Widget.CutVideo.CutCutCut as WCCC
 
-data Query a
-  = QueryUnit
+_wcccSlot = Proxy :: Proxy "wcccSlot"
+
+type Slots = 
+  ( wcccSlot :: WCCC.Slot Unit
+  )
+
+type Slot id = forall query. H.Slot query Output id
 
 data Output
   = Submit String
@@ -59,27 +65,28 @@ data Action
   | ClickTime String String
   | ClickButton_checkbox_op
   | ClickButton_checkbox_ed
-  | ClickButton_CutCutCut
+  | CutCutCut WCCC.Output
 
-type State m = 
+data Radio = Radio Boolean String Boolean String
+
+type State = 
   { message :: String
   , filePaths :: Array String
   , fps :: String
   , scale :: String
   , tempDirPath :: String
   , timeline :: Array String
-  , imgRender :: HH.HTML (H.ComponentSlot () m Action) Action
+  , imgRender :: forall m. HH.HTML (H.ComponentSlot Slots m Action) Action
   , isAlignRight :: Boolean
   , isOpTimeEnable :: Boolean
   , opTime :: String
   , isEdTimeEnable :: Boolean
   , edTime :: String
   , isCuttingVisible :: Boolean
-  , isCutComplete :: Boolean
-  , cutCutCutMsg :: String
+  , cutcutcutMsg :: String
   }
 
-initialState :: forall m. State m
+initialState :: State
 initialState = 
   { message: ""
   , filePaths: []
@@ -94,8 +101,7 @@ initialState =
   , isEdTimeEnable: false
   , edTime: "00:00.000"
   , isCuttingVisible: false
-  , isCutComplete : false
-  , cutCutCutMsg: ""
+  , cutcutcutMsg: ""
   }
 
 component :: forall query input m. MonadAff m => H.Component query input Output m
@@ -103,12 +109,10 @@ component = -- (初始狀態, 怎麼渲染畫面, 處理互動, 外部事件)
   H.mkComponent
     { initialState: \_ -> initialState
     , render
-    , eval: H.mkEval H.defaultEval
-      { handleAction = handleAction
-      }  -- handleAction: 事件的主處理器
+    , eval: H.mkEval H.defaultEval { handleAction = handleAction }  -- handleAction: 事件的主處理器
     }
 
-render :: forall m. State m -> H.ComponentHTML Action () m
+render :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m
 render state = -- render呈現/繪製 構建HTML
   HH.div_
     [ HH.div [ HP.style "display: flex; gap: 10px;"]
@@ -168,18 +172,22 @@ render state = -- render呈現/繪製 構建HTML
         ]
     , HH.p_ [ HH.text ("結果：" <> state.message)]
     , HH.div [ HP.style "display: flex; overflow-x: auto;" ] [ state.imgRender ]
-    , HH.div
+    , HH.div -- CutCutCut元件
         [ HP.style (if state.isCuttingVisible then "visibility: visible;" else "visibility: hidden;")] 
-        [ HH.button
-          [ HE.onClick \_ -> ClickButton_CutCutCut ]
-          [ HH.text "開剪" ]
+        [ HH.p_ [ HH.text ("Cutcutcut元件：" <> state.cutcutcutMsg) ]
+        , HH.slot _wcccSlot unit WCCC.component cccSlotArgs CutCutCut
         ]
-    , HH.div
-        [ HP.style (if state.isCutComplete then "visibility: visible;" else "visibility: hidden;")] 
-        [ HH.text ("剪輯結果：" <> state.cutCutCutMsg) ]
     ]
+  where
+    cccSlotArgs = 
+      { filePaths: state.filePaths
+      , isOpTimeEnable: state.isOpTimeEnable
+      , opTime: state.opTime
+      , isEdTimeEnable: state.isEdTimeEnable
+      , edTime: state.edTime
+      }
 
-allRows :: forall m. String -> Boolean -> Int -> Radio -> Effect (HH.HTML (H.ComponentSlot () m Action) Action)
+allRows :: forall m. String -> Boolean -> Int -> Radio -> Effect (HH.HTML (H.ComponentSlot Slots m Action) Action)
 allRows tempDirPath isAlignRight fps (Radio isOpTimeEnable opTime isEdTimeEnable edTime) = do
   H.liftEffect $ log "tempDirPath:"
   H.liftEffect $ logShow $ tempDirPath
@@ -211,7 +219,7 @@ allRows tempDirPath isAlignRight fps (Radio isOpTimeEnable opTime isEdTimeEnable
         [ HP.style "white-space: nowrap;" ] -- 不自動換行
         [ HH.text s ]
 
-    imgRow :: Int -> String -> Int -> HH.HTML (H.ComponentSlot () m Action) Action
+    imgRow :: Int -> String -> Int -> HH.HTML (H.ComponentSlot Slots m Action) Action
     imgRow maxFrames dirPath totalFrames =
       HH.tr
         [ HP.style "border-bottom: 1px solid #ccc;" ]
@@ -233,7 +241,7 @@ allRows tempDirPath isAlignRight fps (Radio isOpTimeEnable opTime isEdTimeEnable
         numToPath :: Int -> String
         numToPath num = "file://" <> dirPath <> "/" <> pad5 num <> ".jpg"
 
-    topControls :: Int -> String -> Array (HH.HTML (H.ComponentSlot () m Action) Action)
+    topControls :: Int -> String -> Array (HH.HTML (H.ComponentSlot Slots m Action) Action)
     topControls maxFrames op_or_ed = map makeLabel (map toNumber $ range 0 (maxFrames - 1))
       where
         makeLabel index =
@@ -246,7 +254,7 @@ allRows tempDirPath isAlignRight fps (Radio isOpTimeEnable opTime isEdTimeEnable
                 , HE.onChange \_ -> ClickTime op_or_ed (text index)
                 ]
             ]
-    getTimeRow :: Int -> Array (HH.HTML (H.ComponentSlot () m Action) Action)
+    getTimeRow :: Int -> Array (HH.HTML (H.ComponentSlot Slots m Action) Action)
     getTimeRow maxFrames = map makeLabel (map toNumber $ range 0 (maxFrames - 1))
       where
         makeLabel index = HH.label_ [ HH.text (text index) ]
@@ -269,7 +277,7 @@ allRows tempDirPath isAlignRight fps (Radio isOpTimeEnable opTime isEdTimeEnable
 toJSONBody :: Array String -> Maybe AXRB.RequestBody
 toJSONBody arr = Just $ json $ JSON.fromArray $ map JSON.fromString arr
 
-handleAction :: forall m. MonadAff m => Action -> H.HalogenM (State m) Action () Output m Unit
+handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action Slots Output m Unit
 handleAction action = case action of
   Initialize -> pure unit
 
@@ -300,7 +308,6 @@ handleAction action = case action of
     else do
       -- files <- liftEffect $ readDir "D:/coding/encoding/httpServer/multipleCutVideo/temp/20251117-165124/韓-BTS-Dynamite_165124"
       -- liftEffect $ logShow files
-
       let
         Tuple msg (Tuple fps_int scale_int) = checkInput old_st.fps old_st.scale
       H.modify_ \st -> st { message = "上傳中..." }
@@ -314,35 +321,14 @@ handleAction action = case action of
         , content = toJSONBody old_st.filePaths -- body
         }
 
-      case m_respond of
-        Right respond ->  -- 成功 -> 更新瀏覽器的
-          case decodeJson respond.body :: Either JsonDecodeError ApiResponse of
-            Left decodeErr -> H.modify_ \st -> st { message = st.message <> "JSON decode error: " <> show decodeErr } -- 解碼失敗
-            Right (ApiResponse result) ->
-              case result.success of -- respond是否成功 包含404和業務邏輯錯誤
-                true ->
-                  case result.result of
-                    Just (APIMakeCuts (WCV_MC_Result rr)) -> do
-                      let tempDirPath = rr.tempDirPath
-                      -- liftEffect $ logShow rr.tempDirPath
-                      st <- H.get
-                      H.modify_ \st -> st 
-                        { message = st.message <> "切片地址位於：" <> tempDirPath
-                        , tempDirPath = tempDirPath
-                        }
-                      updateImgRender
-                      H.modify_ \st -> st 
-                        { isCuttingVisible = true
-                        }
-                    Just _ -> H.modify_ \st -> st { message = st.message <> "result.result type error" }
-                    Nothing -> H.modify_ \st -> st { message = st.message <> "can't get tempDirPath" }
-                false -> H.modify_ \st -> st { message = st.message <> "respond error: " <> result.message }
-        Left err -> H.modify_ \st -> st { message = st.message <> "internet error: " <> printError err } -- 網路失敗
+      exceptT <- runExceptT (doRespond m_respond)
+      case exceptT of
+        Right _ -> 
+          pure unit
+        Left errMsg -> do
+          H.modify_ \st -> st { message = errMsg }
+      pure unit
 
-      st <- H.get
-      H.raise (Submit st.message)
-
-    
   ClickButton_AlignRight -> do
     st <- H.get
     H.modify_ \st -> st { isAlignRight = not st.isAlignRight }
@@ -365,43 +351,58 @@ handleAction action = case action of
     H.modify_ \st -> st { isEdTimeEnable = not st.isEdTimeEnable }
     updateImgRender
 
-  ClickButton_CutCutCut -> do
-    st <- H.get
-    H.modify_ \st -> st { message = "上傳中..." }
-    let
-      arg_op = if st.isOpTimeEnable then st.opTime else ""
-      arg_ed = if st.isEdTimeEnable then st.edTime else ""
-    m_respond <- H.liftAff $ AX.request $ AX.defaultRequest
-      { url = "http://127.0.0.1:10037/api/cut/cutCutCut/?" <> "op=" <> arg_op <> "&ed=" <> arg_ed
-      , method = Left POST
-      , responseFormat = AXRF.json -- 回傳內容用json格式解析
-      , headers =
-        [ AXRH.RequestHeader "Accept" "application/json"
-        ]
-      , content = toJSONBody st.filePaths -- body
-      }
+  CutCutCut output -> do
+    case output of
+      WCCC.Submit WCCC.Ready ->
+        H.modify_ \st -> st { cutcutcutMsg = "已啟動" }
+      WCCC.Submit WCCC.Handling ->
+        H.modify_ \st -> st { cutcutcutMsg = "剪輯中..." }
+      WCCC.Submit WCCC.Done ->
+        H.modify_ \st -> st { cutcutcutMsg = "剪輯完成" }
+      WCCC.Submit WCCC.Done_Error ->
+        H.modify_ \st -> st { cutcutcutMsg = "剪輯完成 出現錯誤" }
 
-    case m_respond of
-      Right respond ->  -- 成功 -> 更新瀏覽器的
-        case decodeJson respond.body :: Either JsonDecodeError ApiResponse of
-          Left decodeErr -> H.modify_ \st -> st { cutCutCutMsg = "JSON decode error: " <> show decodeErr } -- 解碼失敗
-          Right (ApiResponse result) ->
-            case result.result of
-              Just (APICutCutCut (WCV_CCC_Result rr)) -> 
-                if result.success then -- respond是否成功 包含404和業務邏輯錯誤
-                  H.modify_ \st -> st { cutCutCutMsg = result.message }
-                else
-                  H.modify_ \st -> st { cutCutCutMsg = "respond error: " <> result.message <> "  errors: " <> rr.error }
-              Just _ -> H.modify_ \st -> st { cutCutCutMsg = "result.error type error" }
-              Nothing -> H.modify_ \st -> st { cutCutCutMsg = "can't get result.result" }
-      Left err -> H.modify_ \st -> st { cutCutCutMsg = "internet error: " <> printError err } -- 網路失敗
-    H.modify_ \st -> st 
-      { isCutComplete = true
-      , isCuttingVisible = false
-      }
+doRespond :: forall m. MonadAff m => Either AX.Error (AX.Response JSON.Json) -> ExceptT String (H.HalogenM State Action Slots Output m) Unit
+doRespond e_respond = do 
+  -- lmap 只對Bifunctor左側的值套函式 在這裡就是將Either的左邊轉成String
+  -- ExceptT :: ExceptT (m (Either e a))
+  respond <- except $
+    lmap (\err -> "internet error: " <> printError err) e_respond -- 網路失敗
 
-  
-updateImgRender :: forall m. MonadAff m => H.HalogenM (State m) Action () Output m Unit
+  apiResp <- except $
+    lmap (\e -> "JSON decode error: " <> show e) (decodeJson respond.body :: Either JsonDecodeError ApiResponse) -- 解碼失敗
+
+  rr <- except $ getRr apiResp
+
+  let WCV_MC_Result { tempDirPath, error } = rr
+  let ApiResponse { message, success, result } = apiResp
+  if success then do -- respond是否成功 包含404和業務邏輯錯誤
+    -- liftEffect $ logShow rr.tempDirPath
+    lift $ H.modify_ \st -> st 
+      { message = "切片地址位於：" <> tempDirPath
+      , tempDirPath = tempDirPath
+      }
+    lift updateImgRender
+    lift $ H.modify_ \st -> st 
+      { isCuttingVisible = true
+      }
+  else
+    throwError
+      $ "respond error: "
+      <> message
+      <> " errors: "
+      <> error
+  where
+    getRr :: ApiResponse -> Either String WCV_MC_Result
+    getRr (ApiResponse { result }) =
+      case result of
+        Just (APIMakeCuts rr) -> Right rr
+        Just _ ->
+          Left "result type error"
+        Nothing ->
+          Left "can't get result.result"
+
+updateImgRender :: forall m. MonadAff m => H.HalogenM State Action Slots Output m Unit
 updateImgRender = do
   st <- H.get
   let fps = case fromString st.fps of
