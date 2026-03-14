@@ -3,24 +3,20 @@ module Widget.FetchDevice where
 import Prelude
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
-
 import Data.HTTP.Method (Method(..))
-
 import Effect.Aff.Class (class MonadAff)
-
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
-
 import Affjax.Web as AX
 import Affjax (printError)
 import Affjax.ResponseFormat as AXRF
 import Affjax.RequestHeader as AXRH
-
 import MyLibrary.Http.JSON (ApiResponse(..), ResultResponse(..), WFD_Result(..))
 import Data.Argonaut.Decode (JsonDecodeError, decodeJson)
 
-type Slot id = forall query. H.Slot query Output id
+type Slot id
+  = forall query. H.Slot query Output id
 
 data Output
   = Submit String
@@ -29,11 +25,12 @@ data Action
   = Initialize
   | ClickButton
 
-type State = { message :: String, userDevice :: String }
+type State
+  = { message :: String, userDevice :: String }
 
 -- component負責把所有東西組合起來
 component :: forall query input m. MonadAff m => H.Component query input Output m
-component = -- (初始狀態, 渲染HTML, 處理互動)
+component =  -- (初始狀態, 渲染HTML, 處理互動)
   H.mkComponent
     { initialState: const { message: "(NULL)", userDevice: "(NULL)" }
     , render
@@ -57,7 +54,6 @@ component = -- (初始狀態, 渲染HTML, 處理互動)
 -- render(如div,p...) :: [<屬性/事件>] -> [render@<子元素>] -> render
 -- 有的render不能有[<子元素>] 如input
 -- 如果不需要[<屬性/事件>] 可以使用帶下底線的函式版本 如div_ p_
-
 -- HH.PropertyOrHandler i :: IProp r i
 -- placeholder和onInput都算是<屬性/事件>@IProp的一種建構子
 -- HP.placeholder@<加入屬性:提示文字> :: IProp (placeholder :: String | r) i
@@ -65,17 +61,16 @@ component = -- (初始狀態, 渲染HTML, 處理互動)
 -- r是原有的屬性 也就是子元素傳上來的(placeholder, onInput, value,  ...)
 -- i是所有事件可能回傳的Action型別
 -- IProp r i :: IProp (HH.PropertyOrHandler r i)
-
 -- render 構建HTML
 -- 每次有state改變就會呼叫render render是純函數
 -- H.ComponentHTML :: H.ComponentHTML Action Input m
 -- render只接受state 所以Input固定是()
 render :: forall m. State -> H.ComponentHTML Action () m
-render state = 
+render state =
   HH.div_
     [ HH.button
-      [ HE.onClick \_ -> ClickButton ]
-      [ HH.text "取得我的裝置" ]
+        [ HE.onClick \_ -> ClickButton ]
+        [ HH.text "取得我的裝置" ]
     , HH.p_ [ HH.text state.message ]
     ]
 
@@ -91,7 +86,6 @@ render state =
 handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action () Output m Unit
 handleAction action = case action of
   Initialize -> pure unit -- pure unit 意思是什麼都不做
-
   ClickButton -> do
     -- 執行 AJAX GET 請求  回傳一個HTTP回應 回傳值型別為Aff(Either Error Respond)
     -- AX.request 發送GET  參數是一個做好的Request record
@@ -110,39 +104,35 @@ handleAction action = case action of
     -- defaultRequest是可以只傳部分參數的建構子 剩下用預設值 可以快速產生Request
     -- request回傳值是Aff (Either Error (Response a))
     -- halogen只接受HalogenM這種副作用 所以要用liftAff把Aff包進HalogenM
-    m_respond <- H.liftAff $ AX.request $ AX.defaultRequest
-      { url = "http://127.0.0.1:10037/api/os"
-      , method = Left GET
-      , responseFormat = AXRF.json -- 回傳內容用json格式解析
-      , headers = 
-        [ -- Accept 告訴後端我想要什麼類型的回應 可以多個排優先級
-          -- 但後端也可能亂回 通常還需看respond的Content-Type 所以responseFormat通常要設string
-          AXRH.RequestHeader "Accept" "application/json"
-          -- AXRH.RequestHeader "Accept" "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-          -- User-Agent 通常系統自動給 除非測試時手動填
-        -- , AXRH.RequestHeader "User-Agent" "Mozilla/5.0 (Linux; Android 14) MyCustomBot/1.0"
-        ]
-      }
-
+    m_respond <-
+      H.liftAff $ AX.request
+        $ AX.defaultRequest
+            { url = "http://127.0.0.1:666/api/os"
+            , method = Left GET
+            , responseFormat = AXRF.json -- 回傳內容用json格式解析
+            , headers =
+              [ -- Accept 告訴後端我想要什麼類型的回應 可以多個排優先級 -- 但後端也可能亂回 通常還需看respond的Content-Type 所以responseFormat通常要設string AXRH.RequestHeader "Accept" "application/json"
+              -- AXRH.RequestHeader "Accept" "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+              -- User-Agent 通常系統自動給 除非測試時手動填
+              -- , AXRH.RequestHeader "User-Agent" "Mozilla/5.0 (Linux; Android 14) MyCustomBot/1.0"
+              ]
+            }
     -- Respond(status :: Int , body :: a , headers :: Headers)
     -- 本例中 responseFormat上面給了AXRF.string 所以body要當成字串解析
-    
     -- modify 更新狀態 return新狀態
     -- modify_ 更新狀態 不return
     -- get return整個state
     -- gets 讀取state並套用函式 通常用於取state的某個成員
     case m_respond of
-      Right respond ->  -- 成功 -> 更新瀏覽器的
-        case decodeJson respond.body :: Either JsonDecodeError ApiResponse of
-          Left decodeErr -> H.modify_ \st -> st { message = st.message <> "JSON decode error: " <> show decodeErr } -- 解碼失敗
-          Right (ApiResponse result) ->
-            case result.success of -- respond是否成功 包含404和業務邏輯錯誤
-              true ->
-                case result.result of
-                  Just (APIFetchDevice (WFD_Result rr)) -> H.modify_ \st -> st { message = result.message, userDevice = rr.userDevice }
-                  Just rr -> H.modify_ \st -> st { message = st.message <> "result.result type error" }
-                  Nothing -> H.modify_ \st -> st { message = st.message <> "can't get tempDirPath" }
-              false -> H.modify_ \st -> st { message = st.message <> "respond error: " <> result.message }
+      -- 成功 -> 更新瀏覽器的
+      Right respond -> case decodeJson respond.body :: Either JsonDecodeError ApiResponse of
+        Left decodeErr -> H.modify_ \st -> st { message = st.message <> "JSON decode error: " <> show decodeErr } -- 解碼失敗
+        Right (ApiResponse result) -> case result.success of -- respond是否成功 包含404和業務邏輯錯誤
+          true -> case result.result of
+            Just (APIFetchDevice (WFD_Result rr)) -> H.modify_ \st -> st { message = result.message, userDevice = rr.userDevice }
+            Just rr -> H.modify_ \st -> st { message = st.message <> "result.result type error" }
+            Nothing -> H.modify_ \st -> st { message = st.message <> "can't get tempDirPath" }
+          false -> H.modify_ \st -> st { message = st.message <> "respond error: " <> result.message }
       Left err -> H.modify_ \st -> st { message = st.message <> "internet error: " <> printError err } -- 網路失敗
     st <- H.get
     H.raise (Submit st.message)

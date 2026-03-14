@@ -1,13 +1,19 @@
 module General
-  ( backEndProjectPath
+  ( module MyLibrary.State
+  , backEndProjectPath
   , frontEndProjectPath
   , projectPath
   , printLock
   , safePrint
   ) where
 
+import qualified Network.Socket as NS
+import qualified Data.Map as M
+
 import Control.Concurrent.MVar
 import System.IO.Unsafe (unsafePerformIO)
+
+import MyLibrary.State
 
 backEndProjectPath :: [Char]
 backEndProjectPath = "D:/coding/encoding/httpServer/multipleCutVideo/backEnd/myServer/"

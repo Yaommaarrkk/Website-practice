@@ -39,6 +39,10 @@ to generate this file without the comments in this block.
   , "bifunctors"
   , "newtype"
   , "transformers"
+  , "datetime"
+  , "tailrec"
+  , "lists"
+  , "ordered-collections"
   ]
 , packages = ./packages.dhall
 , sources = [ "frontend/src/**/*.purs", "frontend/test/**/*.purs" ]

@@ -13,6 +13,10 @@ import Control.Concurrent (forkIO)
 import qualified Data.ByteString.Char8 as BC
 import qualified Network.Socket as NS
 import qualified Network.Socket.ByteString as NSB
+import Control.Monad.Trans.Reader (runReaderT)
+import Control.Monad.IO.Class (liftIO)
+import Control.Concurrent.STM.TVar (newTVarIO)
+import qualified Data.Map as Map
 
 import qualified Request as Rq
 import qualified Respond as Rp
@@ -30,7 +34,7 @@ printErr clientSocket (Error (code, msg)) = do
   Rp.respondError clientSocket (getSC code) msg
   return ()
 
-handleRequest :: NS.Socket -> BC.ByteString -> IO [Error]
+handleRequest :: NS.Socket -> BC.ByteString -> MyIO [Error]
 handleRequest clientSocket req = do
   -- safePrint "\n[INFO] [OriginRequest]\n[From: Main.handleRequest]"
   -- safePrint $ "Handling request: " ++ BC.unpack req
@@ -50,13 +54,13 @@ recvRequest socket buffer = do
     else recvRequest socket (buffer <> chunk)
 
 
-handleClient :: NS.Socket -> IO ()
+handleClient :: NS.Socket -> MyIO ()
 handleClient clientSocket = do
-  req <- recvRequest clientSocket BC.empty
+  req <- liftIO $ recvRequest clientSocket BC.empty
   -- safePrint $ "Received request: " ++ BC.unpack req
   err <- handleRequest clientSocket req -- [Error]
-  mapM_ (printErr clientSocket) err -- safePrint & respondError
-  NS.close clientSocket
+  liftIO $ mapM_ (printErr clientSocket) err -- safePrint & respondError
+  liftIO $ NS.close clientSocket
 
 main :: IO ()
 main = do
@@ -69,8 +73,16 @@ main = do
   let cwd = takeDirectory $ takeDirectory dir
   setCurrentDirectory cwd
 
+  -- 初始化環境 (狀態和socket)
+  serverSocket <- createServer
+  env <- newEnv serverSocket -- jobMap和jobCounter自動建立
+
+  runReaderT runServer env
+
+createServer :: IO NS.Socket
+createServer = do
   let host = "127.0.0.1"
-      port = "10037"
+      port = "666"
 
   -- BC是ByteString.Char8
   -- 在這裡用ByteString取代String
@@ -112,10 +124,14 @@ main = do
   -- listen :: Socket -> Int -> IO ()
   -- Int填最多排隊長度
   NS.listen serverSocket 10
+  pure serverSocket
 
-  -- 無限迴圈
-  forever $ do
-    (clientSocket, clientAddr) <- NS.accept serverSocket
-    safePrint $ "Accepted connection from " ++ (show clientAddr) ++ "."
-    _ <- forkIO $ handleClient clientSocket -- forkIO會回傳IO ThreadId
+
+runServer :: MyIO ()
+runServer = do
+  env <- ask
+  forever $ do -- 無限迴圈
+    (clientSocket, clientAddr) <- liftIO $ NS.accept (serverSocket env)
+    liftIO $ safePrint $ "Accepted connection from " ++ (show clientAddr) ++ "."
+    liftIO $ forkIO $ runReaderT (handleClient clientSocket) env -- forkIO會回傳IO ThreadId
     return ()

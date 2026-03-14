@@ -6,6 +6,7 @@ module MyLibrary.Http.JSON
   , WVF_Result(..)
   , WCV_CV_Result(..)
   , WCV_MC_Result(..)
+  , WCV_AP_Result(..)
   , WCV_CCC_Result(..)
   ) where
 
@@ -14,13 +15,28 @@ import Data.Argonaut (Json)
 import Data.Argonaut.Decode (class DecodeJson, decodeJson, (.:))
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
+import MyLibrary.CutVideo.MakeCutsType as McType
 
-newtype WFD_Result = WFD_Result { userDevice :: String }
-newtype WDI_Result = WDI_Result { result :: String }
-newtype WVF_Result = WVF_Result { fileName :: String, fileContent :: String }
-newtype WCV_CV_Result = WCV_CV_Result { tempDirPath :: String }
-newtype WCV_MC_Result = WCV_MC_Result { tempDirPath :: String, error :: String }
-newtype WCV_CCC_Result = WCV_CCC_Result { error :: String }
+newtype WFD_Result
+  = WFD_Result { userDevice :: String }
+
+newtype WDI_Result
+  = WDI_Result { result :: String }
+
+newtype WVF_Result
+  = WVF_Result { fileName :: String, fileContent :: String }
+
+newtype WCV_CV_Result
+  = WCV_CV_Result { tempDirPath :: String }
+
+newtype WCV_MC_Result
+  = WCV_MC_Result { tempDirPath :: String, requestID :: String }
+
+newtype WCV_AP_Result
+  = WCV_AP_Result { updateJobs :: Array McType.Job, isComplete :: Boolean }
+
+newtype WCV_CCC_Result
+  = WCV_CCC_Result { error :: String }
 
 data ResultResponse
   = APIFetchDevice WFD_Result
@@ -28,9 +44,11 @@ data ResultResponse
   | APIViewFile WVF_Result --好像未啟用
   | APICutVideo WCV_CV_Result --未啟用
   | APIMakeCuts WCV_MC_Result
+  | APIAskProgress WCV_AP_Result
   | APICutCutCut WCV_CCC_Result
 
-newtype ApiResponse = ApiResponse
+newtype ApiResponse
+  = ApiResponse
   { message :: String
   , result :: Maybe ResultResponse
   , success :: Boolean
@@ -38,16 +56,25 @@ newtype ApiResponse = ApiResponse
 
 decodeResult :: String -> Json -> Maybe ResultResponse
 decodeResult "APIFetchDevice" json = APIFetchDevice <$> eitherToMaybe (decodeJson json) -- 在這裡建構物件 decodeJson只須回傳record
+
 decodeResult "APIDoubleInput" json = APIDoubleInput <$> eitherToMaybe (decodeJson json)
-decodeResult "APIReadFile"    json = APIViewFile <$> eitherToMaybe (decodeJson json)
-decodeResult "APICutVideo"    json = APICutVideo <$> eitherToMaybe (decodeJson json)
-decodeResult "APIMakeCuts"    json = APIMakeCuts <$> eitherToMaybe (decodeJson json)
-decodeResult "APICutCutCut"    json = APICutCutCut <$> eitherToMaybe (decodeJson json)
+
+decodeResult "APIReadFile" json = APIViewFile <$> eitherToMaybe (decodeJson json)
+
+decodeResult "APICutVideo" json = APICutVideo <$> eitherToMaybe (decodeJson json)
+
+decodeResult "APIMakeCuts" json = APIMakeCuts <$> eitherToMaybe (decodeJson json)
+
+decodeResult "APIAskProgress" json = APIAskProgress <$> eitherToMaybe (decodeJson json)
+
+decodeResult "APICutCutCut" json = APICutCutCut <$> eitherToMaybe (decodeJson json)
+
 decodeResult _ _ = Nothing
 
 eitherToMaybe :: forall a b. Either a b -> Maybe b
 eitherToMaybe (Right x) = Just x
-eitherToMaybe (Left _)  = Nothing
+
+eitherToMaybe (Left _) = Nothing
 
 instance decodeDeviceResult :: DecodeJson WFD_Result where
   decodeJson json = do
@@ -78,8 +105,15 @@ instance decodeMakeCuts :: DecodeJson WCV_MC_Result where
   decodeJson json = do
     obj <- decodeJson json
     tempDirPath <- obj .: "tempDirPath"
-    error <- obj .: "error"
-    pure $ WCV_MC_Result { tempDirPath, error }
+    requestID <- obj .: "requestID"
+    pure $ WCV_MC_Result { tempDirPath, requestID }
+
+instance decodeAskProgress :: DecodeJson WCV_AP_Result where
+  decodeJson json = do
+    obj <- decodeJson json
+    updateJobs <- obj .: "updateJobs"
+    isComplete <- obj .: "isComplete"
+    pure $ WCV_AP_Result { updateJobs, isComplete }
 
 instance decodeCutCutCut :: DecodeJson WCV_CCC_Result where
   decodeJson json = do
@@ -87,7 +121,7 @@ instance decodeCutCutCut :: DecodeJson WCV_CCC_Result where
     error <- obj .: "error"
     pure $ WCV_CCC_Result { error }
 
-instance decodeApiResponse :: DecodeJson ApiResponse where -- DecodeJson會自動找到對應的解碼器
+instance decodeApiResponse :: DecodeJson ApiResponse where  -- DecodeJson會自動找到對應的解碼器
   decodeJson json = do
     obj <- decodeJson json
     t <- obj .: "r_type"

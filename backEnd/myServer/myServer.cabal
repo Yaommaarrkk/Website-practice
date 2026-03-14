@@ -27,27 +27,36 @@ executable myServer
     General
     Http
     Cut.MakeCuts
-  build-depends:       base >=4.7 && <5,
-                       bytestring,
-                       filepath,
-                       directory,
-                       network,
-                       split,
-                       containers,
-                       text,
-                       uri-encode,
-                       aeson,
-                       transformers >=0.5,
-                       process >=1.6,
-                       time,
-                       regex-tdfa,
+    Cut.MakeCuts_type
+    MyLibrary.State
+    MyLibrary.Time
+  build-depends: 
+    base >=4.7 && <5,
+    bytestring,
+    filepath,
+    directory,
+    network,
+    split,
+    containers,
+    text,
+    uri-encode,
+    aeson,
+    transformers >=0.5,
+    process >=1.6,
+    time,
+    regex-tdfa,
+    mtl,
+    stm,
+    async
 
-  ghc-options:         -Wall
-                       -Wcompat
-                       -Widentities
-                       -Wincomplete-record-updates
-                       -Wincomplete-uni-patterns
-                       -Wmissing-export-lists
-                       -Wmissing-home-modules
-                       -Wpartial-fields
-                       -Wredundant-constraints
+  ghc-options:
+    -Wall
+    -Wcompat
+    -Widentities
+    -Wincomplete-record-updates
+    -Wincomplete-uni-patterns
+    -Wmissing-export-lists
+    -Wmissing-home-modules
+    -Wpartial-fields
+    -Wredundant-constraints
+    -threaded
