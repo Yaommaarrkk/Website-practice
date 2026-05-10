@@ -3,9 +3,11 @@ module Widget.CutVideo where
 import Prelude
 import Data.Either (Either(..))
 import Data.Int (fromString, round, toNumber, floor)
-import Data.Array (index, range, zip, (:), foldl, replicate)
+import Data.Array (index, range, zip, (:), foldl, replicate, fromFoldable)
 import Data.Traversable (traverse)
+import Data.List (filter)
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Map as Map
 import Data.Tuple (Tuple(..))
 import Data.String (length, take, replaceAll, Pattern(..), Replacement(..))
 import Effect.Console (log)
@@ -27,6 +29,7 @@ import Affjax.ResponseFormat as AXRF
 import Affjax.RequestHeader as AXRH
 import Affjax.RequestBody as AXRB
 import Effect.Console (log, logShow)
+import MyLibrary.CutVideo.MakeCutsType as McType
 import MyLibrary.Http.JSON (ApiResponse(..), ResultResponse(..), WCV_MC_Result(..))
 import MyLibrary.FileSystem.FileSystem as MyFs
 import Data.Argonaut.Decode (JsonDecodeError, decodeJson)
@@ -84,6 +87,7 @@ type State
     , edTime :: String
     , showAPslot :: Boolean
     , askProgressMsg :: String
+    , ap_videoTable :: McType.JobMap
     , showCCCslot :: Boolean
     , cutcutcutMsg :: String
     }
@@ -105,6 +109,7 @@ initialState =
   , edTime: "00:00.000"
   , showAPslot: false
   , askProgressMsg: ""
+  , ap_videoTable: McType.mkJobMap []
   , showCCCslot: false
   , cutcutcutMsg: ""
   }
@@ -208,15 +213,19 @@ render state =  -- render呈現/繪製 構建HTML
     , edTime: state.edTime
     }
 
-allRows :: forall m. String -> Boolean -> Int -> Radio -> Int -> Effect (HH.HTML (H.ComponentSlot Slots m Action) Action)
-allRows tempDirPath isAlignRight fps (Radio isOpTimeEnable opTime isEdTimeEnable edTime) done = do
-  H.liftEffect $ log "tempDirPath:"
-  H.liftEffect $ logShow $ tempDirPath
-  dirsName <- MyFs.getAllDirInDir tempDirPath
+allRows :: forall m. String -> Boolean -> Int -> Radio -> McType.JobMap -> HH.HTML (H.ComponentSlot Slots m Action) Action
+allRows tempDirPath isAlignRight fps (Radio isOpTimeEnable opTime isEdTimeEnable edTime) videoTable = do
+  -- dirsName <- MyFs.getAllDirInDir tempDirPath -- 拿所有資料夾名稱
+  -- totalFrames <- traverse MyFs.getTotalFrames dirPaths
   let
-    dirPaths = map (\x -> replaceAll (Pattern "\\") (Replacement "/") tempDirPath <> "/" <> x) dirsName
-  totalFrames <- traverse MyFs.getTotalFrames dirPaths
-  let
+    doneJobs = fromFoldable $ filter (\job -> job.state == McType.Done) (Map.values videoTable)
+
+    dirPaths = map (_.outputDir >>> normalizePath) doneJobs
+
+    normalizePath path = replaceAll (Pattern "\\") (Replacement "/") path
+
+    totalFrames = map (_.totalFrames >>> fromMaybe 0) doneJobs
+
     maxFrames = foldl max 0 totalFrames -- 最長的影片的影格數
 
     imgRows = map (\(Tuple x y) -> imgRow maxFrames x y) (zip dirPaths totalFrames)
@@ -235,7 +244,7 @@ allRows tempDirPath isAlignRight fps (Radio isOpTimeEnable opTime isEdTimeEnable
             <> [ HH.tbody_ (if isEdTimeEnable then [ edRow ] else []) ]
             <> map (\x -> HH.tbody_ [ x ]) imgRows
         )
-  pure $ htmlTable
+  htmlTable
   where
   addRowLabel div1 labelArr =
     HH.tr_
@@ -389,6 +398,9 @@ handleAction action = case action of
       WAP.Msg msg -> do
         H.modify_ \st -> st { askProgressMsg = msg }
         updateImgRender
+      WAP.VideoTable videoTable -> do
+        H.modify_ \st -> st { ap_videoTable = videoTable }
+        updateImgRender
       WAP.Done -> do
         H.modify_ \st ->
           st
@@ -448,16 +460,14 @@ updateImgRender = do
     fps = case fromString st.fps of
       Just num -> num
       _ -> 1
-  let
+
     radio = Radio st.isOpTimeEnable st.opTime st.isEdTimeEnable st.edTime
-  m_done <- H.request _wapSlot unit WAP.GetDone
-  H.liftEffect $ log ("m_done" <> show m_done)
-  case m_done of
-    Just done -> do
-      imgRender <- H.liftEffect $ allRows st.tempDirPath st.isAlignRight fps radio done
-      H.modify_ \st -> st { imgRender = imgRender }
-    Nothing -> do -- 如果slot不存在 理論上不會發生
-      H.modify_ \st -> st { askProgressMsg = "UnexpectedError in updateImgRender" }
+  H.liftEffect $ log "tempDirPath:"
+  H.liftEffect $ logShow st.tempDirPath
+  H.modify_ \st ->
+    st
+      { imgRender = allRows st.tempDirPath st.isAlignRight fps radio st.ap_videoTable
+      }
 
 checkInput :: String -> String -> Tuple String (Tuple Int Int)
 checkInput fps scale = Tuple (str1 <> str2) (Tuple fps scale)

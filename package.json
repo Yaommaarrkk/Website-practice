@@ -1,5 +1,4 @@
-{
-  "dependencies": {
+{ "dependencies": {
     "purty": "^7.0.0"
   }
 }

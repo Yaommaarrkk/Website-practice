@@ -15,9 +15,9 @@ where
 
 --(執行外部程式, 取得外部程式印出的資料)
 
-import Control.Concurrent.Async (async, wait)
+import Control.Concurrent
 import Control.Exception (SomeException, try)
-import Control.Monad (forM, void)
+import Control.Monad (forM)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except
@@ -27,19 +27,16 @@ import Data.Aeson (decode)
 import qualified Data.ByteString.Char8 as BC
 import Data.Foldable (forM_)
 import Data.List (intercalate, sortBy)
-import Data.Ord (comparing)
-import Data.Sequence (length)
 import Data.Time (defaultTimeLocale, formatTime, getCurrentTime)
-import Data.Time.Clock (getCurrentTime)
 import Error as Er
-import GHC.Maybe (Maybe (Just))
 import General
+import qualified MyLibrary.Threads as MThreads
 import qualified MyLibrary.Time as MTime
 import qualified Request as Rq
-import System.Directory (createDirectoryIfMissing, getCurrentDirectory)
-import System.Directory.Internal.Prelude (forkIO, hClose, map)
-import System.Exit (ExitCode)
-import System.FilePath (splitDirectories, takeBaseName, takeDirectory, takeFileName, (</>))
+import System.Directory (createDirectoryIfMissing, listDirectory)
+import System.Exit (ExitCode (..))
+import System.FilePath (splitDirectories, takeBaseName, takeDirectory, takeExtension, takeFileName, (</>))
+import System.IO (hClose)
 import System.Process (CreateProcess (..), StdStream (..), callProcess, createProcess, proc, waitForProcess)
 import Text.Regex.TDFA ((=~))
 
@@ -87,30 +84,50 @@ newDir path prefix suffix = do
 
 makeCuts :: RequestID -> FilePath -> [FilePath] -> CutsFormat -> MyIO FilePath -- 回傳tempDir
 makeCuts requestID tempDir inputs cf = do
-  let longJob = do
-        forM inputs $ \fp -> do
-          let videoName = takeBaseName fp
-          tempVideoDir <- liftIO $ newDir tempDir videoName MTime.TimeOfDay
-          jobID <- newJobID -- 流水號ID++並回傳
-          let newJob = MC_type.mkJob videoName fp tempVideoDir
-          updateJob requestID (MC_type.insertJob jobID newJob)
-
-          r <- runExceptT (makeCutsSingle requestID jobID cf)
-          case r of
-            Left err -> return [err]
-            Right _ -> return []
   env <- ask
-  liftIO $ forkIO $ void $ runReaderT longJob env -- 非同步執行切片 forkIO只吃IO 所以要runReaderT降級
+  forM_ inputs $ \fp -> do
+    let videoName = takeBaseName fp
+    tempVideoDir <- liftIO $ newDir tempDir videoName MTime.TimeOfDay
+    let newJob = MC_type.mkJob videoName fp tempVideoDir
+
+    jobID <- newJobID -- 流水號ID++並回傳
+    updateJob requestID (MC_type.insertJob jobID newJob)
+
+    let worker = do
+          let action = runReaderT (runExceptT (workerJob jobID fp)) env
+          result <- liftIO $ MThreads.takeSemaphoreAndRun (globalSem env) action
+
+          case result of
+            Left _ ->
+              runReaderT
+                ( updateJob
+                    requestID
+                    (MC_type.updateState jobID MC_type.Error)
+                )
+                env
+            Right _ ->
+              pure ()
+    liftIO $ forkIO worker
+  -- liftIO $ forkIO $ void $ runReaderT longJob env -- 非同步執行切片 forkIO只吃IO 所以要runReaderT降級
   -- liftIO $ async (runReaderT longJob env) -- 非同步執行切片 async只吃IO 所以要runReaderT降級
   pure tempDir -- 提前回傳資料夾路徑
+  where
+    workerJob jobID fp = do
+      lift $ updateJob requestID (MC_type.updateState jobID MC_type.Processing)
+
+      frames <- makeCutsSingle requestID jobID cf -- 如果有error會提前return
+      lift $ updateJob requestID (MC_type.setTotalFrames jobID (Just frames))
+      lift $ updateJob requestID (MC_type.updateState jobID MC_type.Done)
 
 -- 產生切片
-makeCutsSingle :: RequestID -> MC_type.JobID -> CutsFormat -> ExceptT Er.Error MyIO ()
+makeCutsSingle :: RequestID -> MC_type.JobID -> CutsFormat -> ExceptT Er.Error MyIO Int
 makeCutsSingle requestID jobID cf = do
+  -- makeCutsSingle這裡設計成會卡好幾十秒跑ffmpeg
   -- 印出目前工作目錄(debug用)
   -- cwd <- liftIO getCurrentDirectory
   -- liftIO $ putStrLn ("Current working directory: " ++ cwd)
-  lift $ updateJob requestID (MC_type.updateState jobID MC_type.Processing)
+  startTime <- liftIO getCurrentTime
+  lift $ safePrint $ "[jobID: " ++ show jobID ++ "] Processing: " ++ show startTime
   m_progress <- lift $ getJob requestID
 
   progress <- case m_progress of
@@ -125,15 +142,20 @@ makeCutsSingle requestID jobID cf = do
       videoDir = MC_type.videoDir job
 
   liftIO $ createDirectoryIfMissing True tempVideoDir -- 確定暫存資料夾存在
+  runFFmpeg videoDir tempVideoDir
+  totalFrames <- liftIO $ countFrames tempVideoDir
 
-  -- i(輸入檔案) vf(video filter: fps每秒的影格數 scale縮放大小) 最後(輸出檔案)
-  let vf = "fps=" ++ show (getFps cf) ++ ",scale=" ++ show (getScale cf) ++ ":-1" -- -1保持原本比例
-      args = ["-y", "-i", videoDir, "-vf", vf, tempVideoDir </> "%05d.jpg"]
-
-  env <- lift ask
-  liftIO $
-    void $
-      forkIO $ do
+  endTime <- liftIO getCurrentTime
+  lift $ safePrint $ "[jobID: " ++ show jobID ++ "] Done: " ++ show endTime
+  return totalFrames
+  where
+    runFFmpeg :: FilePath -> FilePath -> ExceptT Er.Error MyIO ()
+    runFFmpeg videoDir tempVideoDir = do
+      -- i(輸入檔案) vf(video filter: fps每秒的影格數 scale縮放大小) 最後(輸出檔案)
+      let vf = "fps=" ++ show (getFps cf) ++ ",scale=" ++ show (getScale cf) ++ ":-1" -- -1保持原本比例
+          args = ["-y", "-i", videoDir, "-vf", vf, "-threads", "1", tempVideoDir </> "%05d.jpg"] -- 改成單核心
+      env <- lift ask
+      exitCode <- liftIO $ do
         let process =
               (proc "ffmpeg" args)
                 { std_in = NoStream,
@@ -144,32 +166,34 @@ makeCutsSingle requestID jobID cf = do
         (_, Just hout, Just herr, ph) <- createProcess process -- 啟動process立馬回傳
         hClose hout
         hClose herr
-        void $ waitForProcess ph -- 等待真正切完
-        -- case e_r of
-        --   Left err -> do
-        --     lift $ updateJob requestID (MC_type.updateState jobID MC_type.Error)
-        --   Right _ -> do
-        void $ runReaderT (updateJob requestID (MC_type.updateState jobID MC_type.Done)) env
-  return ()
+        waitForProcess ph -- 等待真正切完 回傳exitCode
+      case exitCode of
+        ExitSuccess -> pure ()
+        ExitFailure code -> throwE $ Error (ApiCut_err, "func: makeCutsSingle - ffmpeg failed: " ++ show code)
+    countFrames :: FilePath -> IO Int
+    countFrames tempVideoDir = do
+      files <- listDirectory tempVideoDir
+      let totalFrames = length $ filter (\f -> takeExtension f == ".jpg") files
+      return totalFrames
 
-cutCutCut :: [FilePath] -> CccFormat -> IO (Int, [Error]) -- 回傳tempDir
-cutCutCut inputs cf = do
+cutCutCut :: [FilePath] -> CccFormat -> Logger -> IO (Int, [Error]) -- 回傳tempDir
+cutCutCut inputs cf logger = do
   now <- liftIO getCurrentTime
   let timestamp = formatTime defaultTimeLocale "cutCutCut__%Y%m%d-%H%M%S" now
       tempDir = projectPath </> "temp" </> timestamp
   liftIO $ createDirectoryIfMissing True tempDir
 
   results <- forM inputs $ \fp -> do
-    r <- runExceptT (cutCutCutSingle fp cf tempDir)
+    r <- runExceptT (cutCutCutSingle fp cf tempDir logger)
     case r of
       Left err -> return [err]
       Right _ -> return []
 
   let errors = concat results
-  return (Prelude.length inputs - Prelude.length errors, errors)
+  return (length inputs - length errors, errors)
 
-cutCutCutSingle :: FilePath -> CccFormat -> FilePath -> ExceptT Er.Error IO ()
-cutCutCutSingle input cf tempDir = do
+cutCutCutSingle :: FilePath -> CccFormat -> FilePath -> Logger -> ExceptT Er.Error IO ()
+cutCutCutSingle input cf tempDir logger = do
   liftIO $ createDirectoryIfMissing True tempDir -- 確定暫存資料夾存在
   let ss = if getOp cf == "" then [] else ["-ss", getOp cf]
       to = if getEd cf == "" then [] else ["-to", getEd cf]
@@ -205,12 +229,12 @@ uniqueSuffixes filePaths = go [] sortedPaths
       case getSame x pool of
         [] -> []
         [single] -> go duplicatePart [single] ++ go duplicatePart as
-        chosen -> go (x : duplicatePart) chosen ++ go duplicatePart (drop (Prelude.length chosen) pool)
+        chosen -> go (x : duplicatePart) chosen ++ go duplicatePart (drop (length chosen) pool)
       where
         getSame seq ((x : xs, path) : ys)
           | x == seq = (xs, path) : getSame seq ys
           | otherwise = []
-        getSame x _ = []
+        getSame _ _ = []
 
     toFileName [] fileName = fileName
     toFileName duplicatePart fileName =

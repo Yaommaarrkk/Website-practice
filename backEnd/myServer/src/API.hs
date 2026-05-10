@@ -36,8 +36,10 @@ data ArgValue = AV_Int Int | AV_String String
 type ApiHandler = NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> MyIO [Error]
 
 -- 把回傳IO的升級成MyIO
-toMyIO :: (NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> IO [Error]) -> NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> MyIO [Error]
-toMyIO f sock args hdrs = liftIO $ f sock args hdrs
+toMyIO :: (NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> Logger -> IO [Error]) -> NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> MyIO [Error]
+toMyIO f sock args hdrs = do
+  logger <- getLogger
+  liftIO $ f sock args hdrs logger
 
 apiRouteTable :: [((Rq.Method, BC.ByteString), [ArgType], ApiHandler)]
 apiRouteTable =
@@ -131,15 +133,15 @@ getOS headers =
 doubleChars :: Int -> String -> String
 doubleChars multiple str = concatMap (\c -> take multiple (repeat c)) str -- concatMap會攤平
 
-echo :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> IO [Error]
-echo clientSocket [AV_Int multiple, AV_String message] _ = do
-  _ <- Rp.respondMessage clientSocket True (doubleChars multiple message)
+echo :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> Logger -> IO [Error]
+echo clientSocket [AV_Int multiple, AV_String message] _ logger = do
+  _ <- Rp.respondMessage clientSocket True (doubleChars multiple message) logger
   return []
-echo _ _ _ = do
+echo _ _ _ _ = do
   return [Error (UnexpectedError, "api/handleFile Pattern matching failed")]
 
-handleOS :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> IO [Error]
-handleOS clientSocket _ (headers, _) =
+handleOS :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> Logger -> IO [Error]
+handleOS clientSocket _ (headers, _) logger =
   case getOS headers of
     Left os_str -> do
       let myVars = M.fromList [(fromString "userDevice", os_str)]
@@ -150,43 +152,43 @@ handleOS clientSocket _ (headers, _) =
                 Rp.message = "User device is " ++ os_str,
                 Rp.result = Just $ object (map (\(k, v) -> k .= v) (M.toList myVars))
               }
-      Rp.respondJSON clientSocket json Http.SC200
+      Rp.respondJSON clientSocket json Http.SC200 logger
 
-handleFile :: Http.DispositionType -> NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> IO [Error]
-handleFile _ clientSocket [] _ = do
+handleFile :: Http.DispositionType -> NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> Logger -> IO [Error]
+handleFile _ clientSocket [] _ logger = do
   allFilesName <- listDirectory $ backEndProjectPath ++ "static/test_sendFile"
-  Rp.respondMessage clientSocket True (unlines allFilesName)
-handleFile dType clientSocket [AV_String fileName] _ = do
+  Rp.respondMessage clientSocket True (unlines allFilesName) logger
+handleFile dType clientSocket [AV_String fileName] _ logger = do
   let filePath = backEndProjectPath ++ "static/test_sendFile/" ++ fileName
   _ <- putStrLn $ "filePath:" ++ filePath
   isFileExist <- doesFileExist filePath
   _ <- putStrLn $ "doesFileExist filePath:" ++ show isFileExist
   if isFileExist
     then do
-      Rp.buildResponseFile clientSocket filePath dType
+      Rp.buildResponseFile clientSocket filePath dType logger
     else do
       return [Error (ApiFile_fileNotFound, "api/handleFile can't find file\n\tmaybe try \"test_sendFile.gif\"")]
-handleFile _ _ _ _ = do
+handleFile _ _ _ _ _ = do
   return [Error (UnexpectedError, "api/handleFile Pattern matching failed")]
 
 -- 以下是POST
-saveFile :: NS.Socket -> Rq.FormPart -> IO (Maybe Error)
-saveFile _ (Rq.FormFile _ fileName content) = do
+saveFile :: NS.Socket -> Rq.FormPart -> Logger -> IO (Maybe Error)
+saveFile _ (Rq.FormFile _ fileName content) logger = do
   let filePath = backEndProjectPath ++ "static/test_sendFile/" ++ fileName
   isFileExist <- doesFileExist filePath
   if isFileExist
     then -- 檔名存在就不讓存檔
       return $ Just $ Error (ApiUploadFile_fileIsAlreadyExist, "api/handleUploadFile - file is already exist")
     else BS.writeFile filePath content >> return Nothing
-saveFile _ _ = return $ Just $ Error (UnexpectedError, "api/handleUploadFile - saveFile\n Pattern matching failed")
+saveFile _ _ _ = return $ Just $ Error (UnexpectedError, "api/handleUploadFile - saveFile\n Pattern matching failed")
 
 handleMakeCuts :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> MyIO [Error]
 handleMakeCuts clientSocket [AV_String filePathAndArgs] (_, m_bodies) = do
   case MC.get_m_filePaths m_bodies of
     Nothing -> return [Error (ApiCut_err, "api/handleMakeCuts missing filePaths in body")]
     Just filePaths -> do
-      liftIO $ safePrint "\n[INFO] [filePaths]\n[From: API.handleMakeCuts]"
-      liftIO $ safePrint $ "filePaths: " ++ show filePaths
+      safePrint "\n[INFO] [filePaths]\n[From: API.handleMakeCuts]"
+      safePrint $ "filePaths: " ++ show filePaths
       requestID <- insertJob MC_type.defaultProgress
       tempDir <- liftIO $ MC.newDir (projectPath </> "temp") "makeCuts" MTime.FullTimestamp
       let myVars = M.fromList [(fromString "tempDirPath", tempDir), (fromString "requestID", requestID)]
@@ -198,9 +200,9 @@ handleMakeCuts clientSocket [AV_String filePathAndArgs] (_, m_bodies) = do
                 Rp.r_type = "APIMakeCuts",
                 Rp.result = Just $ object (map (\(k, v) -> k .= v) (M.toList myVars))
               }
-      -- safePrint "\n[INFO] [response]\n[From: API.handleMakeCuts]"
-      -- safePrint $ "Response JSON: " ++ BLC.unpack (encode json)
-      ret_err <- liftIO $ Rp.respondJSON clientSocket json Http.SC200
+      -- logger "\n[INFO] [response]\n[From: API.handleMakeCuts]"
+      -- logger $ "Response JSON: " ++ BLC.unpack (encode json)
+      ret_err <- withLogger $ Rp.respondJSON clientSocket json Http.SC200
       MC.makeCuts requestID tempDir filePaths cf
       return ret_err
   where
@@ -213,9 +215,6 @@ handleAskProgress :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) ->
 handleAskProgress clientSocket [AV_String filePathAndArgs] _ = do
   -- 讀取狀態
   jobMap <- getJobMap
-  liftIO $ safePrint $ "jobMap: " ++ show jobMap
-  liftIO $ safePrint $ "queries: " ++ show queries
-  liftIO $ putStrLn $ "前端m_requestID: " ++ show m_requestID
   case m_requestID of
     Nothing -> do
       return [Error (ApiCut_err, "api/handleAskProgress can't find requestID in URL")]
@@ -244,9 +243,15 @@ handleAskProgress clientSocket [AV_String filePathAndArgs] _ = do
                   done = MC_type.getDone progress
                   total = MC_type.getTotal progress
                   failCount = MC_type.getFailCount progress
-          liftIO $ safePrint "\n[INFO] [response]\n[From: API.handleAskProgress]"
-          liftIO $ safePrint $ "Response JSON: " ++ BLC.unpack (encode json)
-          liftIO $ Rp.respondJSON clientSocket json Http.SC200
+          -- safePrint "\n[INFO] [response]\n[From: API.handleAskProgress]"
+          -- safePrint $ "\tjobMap: " ++ show jobMap
+          -- safePrint $ "\tqueries: " ++ show queries
+          -- safePrint $ "\t前端m_requestID: " ++ show m_requestID
+          -- safePrint $ "\t[done/total/fail]: " ++ MC_type.showInfo progress
+          -- safePrint $ "\t[isComplete]: " ++ show isComplete
+          -- safePrint $ "\t[jobQueue]: " ++ show jobQueue
+          withLogger $ Rp.respondJSON clientSocket json Http.SC200
+          updateJob requestID MC_type.clearJobQueue -- 回傳後就清空jobQueue
           if isComplete
             then do
               deleteJob requestID -- 完成後刪除狀態
@@ -258,15 +263,15 @@ handleAskProgress clientSocket [AV_String filePathAndArgs] _ = do
 handleAskProgress _ _ _ = do
   return [Error (UnexpectedError, "api/handleAskProgress Pattern matching failed")]
 
-handleCutCutCut :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> IO [Error]
-handleCutCutCut clientSocket [AV_String filePathAndArgs] (_, m_bodies) = do
-  safePrint "\n[INFO] [op_str ed_str]\n[From: API.handleCutCutCut]"
-  safePrint $ "cf(op, ed): " ++ show cf
+handleCutCutCut :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> Logger -> IO [Error]
+handleCutCutCut clientSocket [AV_String filePathAndArgs] (_, m_bodies) logger = do
+  logger "\n[INFO] [op_str ed_str]\n[From: API.handleCutCutCut]"
+  logger $ "cf(op, ed): " ++ show cf
 
   case MC.get_m_filePaths m_bodies of
     Nothing -> return [Error (ApiCut_err, "api/handleCutCutCut missing filePaths in body")]
     Just filePaths -> do
-      (successCount, errs) <- MC.cutCutCut filePaths cf
+      (successCount, errs) <- MC.cutCutCut filePaths cf logger
       let myVars = M.fromList [(fromString "error", show errs)]
           json :: Rp.ResponseJSON Value
           json =
@@ -278,20 +283,20 @@ handleCutCutCut clientSocket [AV_String filePathAndArgs] (_, m_bodies) = do
                 Rp.r_type = "APICutCutCut",
                 Rp.result = Just $ object (map (\(k, v) -> k .= v) (M.toList myVars))
               }
-      safePrint "\n[INFO] [response]\n[From: API.handleCutCutCut]"
-      safePrint $ "Response JSON: " ++ BLC.unpack (encode json)
-      Rp.respondJSON clientSocket json Http.SC200
+      -- logger "\n[INFO] [response]\n[From: API.handleCutCutCut]"
+      -- logger $ "Response JSON: " ++ BLC.unpack (encode json)
+      Rp.respondJSON clientSocket json Http.SC200 logger
   where
     queries = Rq.parseQuery $ Rq.getQueryString filePathAndArgs
     cf = (lookup "op" queries, lookup "ed" queries) :: MC.CccFormat
-handleCutCutCut _ _ _ = do
+handleCutCutCut _ _ _ _ = do
   return [Error (UnexpectedError, "api/handleCutCutCut Pattern matching failed")]
 
-handleUploadFile :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> IO [Error]
-handleUploadFile clientSocket _ (headers, m_body) = do
-  results <- mapM (saveFile clientSocket) onlyFiles -- IO [Maybe Error]
+handleUploadFile :: NS.Socket -> [ArgValue] -> (Rq.Headers, Maybe Rq.Bodies) -> Logger -> IO [Error]
+handleUploadFile clientSocket _ (headers, m_body) logger = do
+  results <- mapM (\x -> saveFile clientSocket x logger) onlyFiles -- IO [Maybe Error]
   case catMaybes results of -- 把Nothing篩掉
-    [] -> Rp.respondMessage clientSocket True "upload file success"
+    [] -> Rp.respondMessage clientSocket True "upload file success" logger
     err -> return err
   where
     -- parseMultiBody :: Request -> [FormPart]
@@ -317,7 +322,7 @@ handleWebsitePage :: NS.Socket -> FilePath -> Rq.Headers -> MyIO [Error]
 handleWebsitePage clientSocket filePath headers = do
   let finalFilePath = frontEndProjectPath ++ filePath
   case getOS headers of
-    Left "PC" -> liftIO $ Rp.buildResponseFile clientSocket finalFilePath Http.View
+    Left "PC" -> withLogger $ Rp.buildResponseFile clientSocket finalFilePath Http.View
     Left "Mobile" -> return [Error (UnexpectedError, "handleWebsitePage This website not supported on mobile phones")]
     Right err -> return err
     _ -> return [Error (UnexpectedError, "handleWebsitePage Pattern matching failed")]

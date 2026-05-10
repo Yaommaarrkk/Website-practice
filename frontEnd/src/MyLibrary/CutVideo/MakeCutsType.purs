@@ -2,8 +2,8 @@ module MyLibrary.CutVideo.MakeCutsType where
 
 import Prelude
 import Data.Either (Either(..))
+import Data.Maybe (Maybe(..))
 import Data.Map as Map
-import Data.Map (Map)
 import Data.Array (fromFoldable)
 import Data.List (length, filter)
 import Data.Generic.Rep (class Generic)
@@ -20,7 +20,7 @@ type Job
   = { videoName :: String
     , state :: JobState -- Waiting | Processing | Done | Error
     , outputDir :: String
-    , totalFrames :: Int
+    , totalFrames :: Maybe Int
     }
 
 type VideoName
@@ -62,4 +62,4 @@ getTotal :: JobMap -> Int
 getTotal jobMap = Map.size jobMap
 
 mkJobMap :: Array VideoName -> JobMap
-mkJobMap names = Map.fromFoldable $ fromFoldable $ map (\key -> Tuple key { videoName: key, state: Waiting, outputDir: "", totalFrames: 0 }) names
+mkJobMap names = Map.fromFoldable $ fromFoldable $ map (\key -> Tuple key { videoName: key, state: Waiting, outputDir: "", totalFrames: Nothing }) names

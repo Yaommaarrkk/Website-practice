@@ -5,8 +5,9 @@ import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.Foldable (foldl)
 import Data.Map as Map
-import Effect.Console (log)
+import Effect.Console (log, logShow)
 import Effect.Class (liftEffect)
+import Data.Argonaut.Core (stringify)
 import Data.Bifunctor (lmap)
 import Data.Time.Duration (Milliseconds(..))
 import Control.Monad (void, when)
@@ -32,7 +33,7 @@ import Affjax.RequestBody (json)
 import MyLibrary.CutVideo.MakeCutsType as McType
 
 type Slot id
-  = H.Slot Query Output id
+  = forall query. H.Slot query Output id
 
 type Slots
   = ()
@@ -48,10 +49,8 @@ type Input
 
 data Output
   = Msg String
+  | VideoTable McType.JobMap
   | Done
-
-data Query a
-  = GetDone (Int -> a)
 
 data Action
   = Initialize
@@ -71,7 +70,7 @@ updateState input =
       { requestID = input.requestID
       }
 
-component :: forall m. MonadAff m => H.Component Query Input Output m
+component :: forall query m. MonadAff m => H.Component query Input Output m
 component =  -- (初始狀態, 怎麼渲染畫面, 處理互動, 外部事件)
   H.mkComponent
     { initialState -- 柯里化 直接把input傳進initialState處理
@@ -98,12 +97,6 @@ render state = HH.div_ [] -- render呈現/繪製 構建
 toJSONBody :: Array String -> Maybe AXRB.RequestBody
 toJSONBody arr = Just $ json $ JSON.fromArray $ map JSON.fromString arr
 
-handleQuery :: forall m a. MonadAff m => Query a -> H.HalogenM State Action Slots Output m (Maybe a)
-handleQuery = case _ of
-  GetDone reply -> do
-    st <- H.get
-    pure $ Just (reply $ McType.getDone st.videoTable)
-
 handleAction :: forall m. MonadAff m => Action -> H.HalogenM State Action Slots Output m Unit
 handleAction action = case action of
   Initialize -> do
@@ -112,11 +105,14 @@ handleAction action = case action of
     H.liftEffect $ log "AskProgress元件已初始化"
     void
       $ H.fork do
-          forever do
-            H.liftAff $ delay (Milliseconds 1000.0)
-            st <- H.get
-            H.liftEffect $ log $ "requestID: " <> st.requestID
-            handleAction SendRequest -- 呼叫自己元件自身的query
+          go
+    where
+    go = do
+      st <- H.get
+      when (not st.isComplete) do
+        handleAction SendRequest
+        H.liftAff $ delay (Milliseconds 1000.0)
+        go
   -- Receive (Just inputData) -> do
   --   updateState inputData
   -- Receive Nothing -> do
@@ -125,30 +121,28 @@ handleAction action = case action of
     updateState input
   SendRequest -> do
     old_st <- H.get
-    when (not old_st.isComplete) do
-      H.liftEffect $ log "AskProgress丟request"
-      m_respond <-
-        H.liftAff $ AX.request
-          $ AX.defaultRequest
-              { url = "http://127.0.0.1:666/api/cut/askProgress/?" <> "requestID=" <> old_st.requestID
-              , method = Left GET
-              , responseFormat = AXRF.json -- 回傳內容用json格式解析
-              , headers =
-                [ AXRH.RequestHeader "Accept" "application/json"
-                ]
-              }
-      H.liftEffect $ log "AskProgress收response"
-      exceptT <- runExceptT (doRespond m_respond)
-      case exceptT of
-        Right msg -> do
-          H.raise $ Msg msg
-        Left errMsg -> do
-          H.raise $ Msg errMsg
-      st <- H.get
-      if st.isComplete then
-        H.raise Done
-      else
-        pure unit
+    -- H.liftEffect $ log "AskProgress丟request"
+    m_respond <-
+      H.liftAff $ AX.request
+        $ AX.defaultRequest
+            { url = "http://127.0.0.1:666/api/cut/askProgress/?" <> "requestID=" <> old_st.requestID
+            , method = Left GET
+            , responseFormat = AXRF.json -- 回傳內容用json格式解析
+            , headers =
+              [ AXRH.RequestHeader "Accept" "application/json"
+              ]
+            }
+    -- H.liftEffect $ log "AskProgress收response"
+    exceptT <- runExceptT (doRespond m_respond)
+    case exceptT of
+      Right msg -> do
+        H.raise $ Msg msg
+      Left errMsg -> do
+        H.raise $ Msg errMsg
+    st <- H.get
+    H.raise $ VideoTable st.videoTable
+    when st.isComplete do
+      H.raise Done
 
 doRespond :: forall m. MonadAff m => Either AX.Error (AX.Response JSON.Json) -> ExceptT String (H.HalogenM State Action Slots Output m) String
 doRespond e_respond = do
@@ -160,6 +154,8 @@ doRespond e_respond = do
   apiResp <-
     except
       $ lmap (\e -> "JSON decode error: " <> show e) (decodeJson respond.body :: Either JsonDecodeError ApiResponse) -- 解碼失敗
+  let
+    ApiResponse r = apiResp
   rr <- except $ getRr apiResp
   let
     WCV_AP_Result { updateJobs, isComplete } = rr

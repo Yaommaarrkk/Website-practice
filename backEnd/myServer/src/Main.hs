@@ -1,48 +1,47 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
 
-import System.IO (BufferMode (NoBuffering), hSetBuffering, stderr, stdout, hSetEncoding, utf8)
-import System.Directory (setCurrentDirectory, getCurrentDirectory)
-import System.FilePath (takeDirectory)
-
-
+import qualified API
+import Control.Concurrent (forkIO, forkOS, threadDelay)
+import Control.Concurrent.STM (atomically)
+import Control.Concurrent.STM.TQueue (newTQueueIO, readTQueue)
+import Control.Concurrent.STM.TVar (newTVarIO)
 import Control.Monad (forever)
-import Control.Concurrent (forkIO)
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.STM (atomically)
+import Control.Monad.Trans.Reader (runReaderT)
 import qualified Data.ByteString.Char8 as BC
+import qualified Data.Map as Map
+import Error as Er
+import General
+import qualified Http
 import qualified Network.Socket as NS
 import qualified Network.Socket.ByteString as NSB
-import Control.Monad.Trans.Reader (runReaderT)
-import Control.Monad.IO.Class (liftIO)
-import Control.Concurrent.STM.TVar (newTVarIO)
-import qualified Data.Map as Map
-
 import qualified Request as Rq
 import qualified Respond as Rp
-import qualified API
-import qualified Http
-import Error as Er
+import System.Directory (getCurrentDirectory, setCurrentDirectory)
+import System.FilePath (takeDirectory)
+import System.IO (BufferMode (NoBuffering), hSetBuffering, hSetEncoding, stderr, stdout, utf8)
+import System.Win32.Thread (getCurrentThread)
 
-import General
-
-
-printErr :: NS.Socket -> Error -> IO ()
-printErr clientSocket (Error (code, msg)) = do
-  safePrint $ "error: " ++ show code
-  safePrint $ "errorMsg: " ++ msg ++ "\n"
-  Rp.respondError clientSocket (getSC code) msg
+printErr :: NS.Socket -> Error -> Logger -> IO ()
+printErr clientSocket (Error (code, msg)) logger = do
+  logger $ "error: " ++ show code
+  logger $ "errorMsg: " ++ msg ++ "\n"
+  Rp.respondError clientSocket (getSC code) msg logger
   return ()
 
 handleRequest :: NS.Socket -> BC.ByteString -> MyIO [Error]
 handleRequest clientSocket req = do
-  -- safePrint "\n[INFO] [OriginRequest]\n[From: Main.handleRequest]"
-  -- safePrint $ "Handling request: " ++ BC.unpack req
+  -- logger "\n[INFO] [OriginRequest]\n[From: Main.handleRequest]"
+  -- logger $ "Handling request: " ++ BC.unpack req
   let e_request = Rq.splitRequest req
   case e_request of
     Left request -> do
-      -- safePrint "\n[INFO] [ParsedRequest]\n[From: Main.handleRequest]"
-      -- safePrint $ show request
+      -- logger "\n[INFO] [ParsedRequest]\n[From: Main.handleRequest]"
+      -- logger $ show request
       API.handleURL clientSocket request -- 傳入處理好的Request
     Right err -> return err
 
@@ -53,13 +52,13 @@ recvRequest socket buffer = do
     then return (buffer <> chunk)
     else recvRequest socket (buffer <> chunk)
 
-
 handleClient :: NS.Socket -> MyIO ()
 handleClient clientSocket = do
   req <- liftIO $ recvRequest clientSocket BC.empty
-  -- safePrint $ "Received request: " ++ BC.unpack req
+  -- logger $ "Received request: " ++ BC.unpack req
   err <- handleRequest clientSocket req -- [Error]
-  liftIO $ mapM_ (printErr clientSocket) err -- safePrint & respondError
+  logger <- getLogger
+  liftIO $ mapM_ (\x -> printErr clientSocket x logger) err -- safePrint & respondError
   liftIO $ NS.close clientSocket
 
 main :: IO ()
@@ -73,14 +72,30 @@ main = do
   let cwd = takeDirectory $ takeDirectory dir
   setCurrentDirectory cwd
 
+  newLogQueue <- newTQueueIO -- 提前建logQueue和logger 因為馬上就要用 不能等newEnv再建
+  let logger = safePrintIO newLogQueue
+
   -- 初始化環境 (狀態和socket)
-  serverSocket <- createServer
-  env <- newEnv serverSocket -- jobMap和jobCounter自動建立
+  serverSocket <- createServer logger
+  -- jobMap和jobCounter自動建立
+  -- newEnv :: socket -> 最大線程數 -> logQueue -> env
+  env <- newEnv serverSocket 2 newLogQueue
 
-  runReaderT runServer env
+  _ <- forkOS $ do
+    h <- getCurrentThread
+    setThreadAffinity h 0 -- 綁到 CPU0
+    logger "主線程綁到 CPU0"
+    runReaderT runServer env
 
-createServer :: IO NS.Socket
-createServer = do
+  _ <- forkIO $ do
+    putStrLn "啟動log thread"
+    forever $ do
+      msg <- atomically $ readTQueue (logQueue env)
+      putStrLn msg
+  forever $ threadDelay 1000000 -- 把runserver丟給forkOS 主線程就等待就好
+
+createServer :: Logger -> IO NS.Socket
+createServer logger = do
   let host = "127.0.0.1"
       port = "666"
 
@@ -89,7 +104,7 @@ createServer = do
   -- 高效函式庫多用ByteString或Text
   -- BC.pack 將String轉ByteString
   -- <>是字串連接 相當於String的++
-  safePrint $ "Listening on " ++ host ++ ":" ++ port
+  logger $ "Listening on " ++ host ++ ":" ++ port
 
   -- getAddrInfo會根據三個參數作為條件 跟系統要資源 會回傳可行的組合(得到多筆的AddrInfo)
   -- getAddrInfo :: Maybe AddrInfo -> Maybe HostName > Maybe ServiceName -> IO [AddrInfo]
@@ -108,7 +123,7 @@ createServer = do
   addrInfo <- NS.getAddrInfo Nothing (Just host) (Just port)
   addr <- case addrInfo of -- 從所有可用方案addrInfo內拿第一個
     [] -> error "error: No address info found"
-    (x:_) -> return x
+    (x : _) -> return x
 
   -- socket :: Family -> SocketType -> ProtocolNumber -> IO Socket
   -- Family(型別ADT) 拿addrInfo的head也就是AddrInfo 裡面的addrFamily(IPv4)項
@@ -126,12 +141,12 @@ createServer = do
   NS.listen serverSocket 10
   pure serverSocket
 
-
 runServer :: MyIO ()
 runServer = do
   env <- ask
-  forever $ do -- 無限迴圈
+  safePrint "RUNSERVER START"
+  forever $ do
+    -- 無限迴圈
     (clientSocket, clientAddr) <- liftIO $ NS.accept (serverSocket env)
-    liftIO $ safePrint $ "Accepted connection from " ++ (show clientAddr) ++ "."
+    safePrint $ "Accepted connection from " ++ (show clientAddr) ++ "."
     liftIO $ forkIO $ runReaderT (handleClient clientSocket) env -- forkIO會回傳IO ThreadId
-    return ()

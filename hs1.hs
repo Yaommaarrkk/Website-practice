@@ -10,8 +10,8 @@ import System.Process (callProcess, readProcess) --(執行外部程式, 取得�
 import Text.Printf (printf) --小數->字串
 import Text.Read (readMaybe)
 
-cutVideo :: FilePath -> FilePath -> Maybe Word -> Maybe Word -> ExceptT String IO () --參數(輸入檔名, 輸出檔名, 去頭秒數, 去尾秒數) Word為正整數
-cutVideo input output cutStart cutEnd = do
+cutVideo :: FilePath -> FilePath -> Maybe Word -> Maybe Word -> Logger -> ExceptT String IO () --參數(輸入檔名, 輸出檔名, 去頭秒數, 去尾秒數) Word為正整數
+cutVideo input output cutStart cutEnd logger = do
   duration <- tryGetDuration input -- 呼叫tryGetDuration取得影片長度
   let start = maybe 0 fromIntegral cutStart
       end = maybe 0 fromIntegral cutEnd

@@ -1672,22 +1672,6 @@
       };
       return Just2;
     }();
-    var showMaybe = function(dictShow) {
-      var show8 = show(dictShow);
-      return {
-        show: function(v) {
-          if (v instanceof Just) {
-            return "(Just " + (show8(v.value0) + ")");
-          }
-          ;
-          if (v instanceof Nothing) {
-            return "Nothing";
-          }
-          ;
-          throw new Error("Failed pattern match at Data.Maybe (line 223, column 1 - line 225, column 28): " + [v.constructor.name]);
-        }
-      };
-    };
     var maybe$prime = function(v) {
       return function(v1) {
         return function(v2) {
@@ -2141,15 +2125,6 @@
       Monad0: function() {
         return monadEffect;
       }
-    };
-    var forever = function(dictMonadRec) {
-      var tailRecM1 = tailRecM(dictMonadRec);
-      var voidRight3 = voidRight(dictMonadRec.Monad0().Bind1().Apply0().Functor0());
-      return function(ma) {
-        return tailRecM1(function(u2) {
-          return voidRight3(new Loop(u2))(ma);
-        })(unit);
-      };
     };
     var unsafeCoerce2 = function(x) {
       return x;
@@ -3202,9 +3177,9 @@
     var map9 = /* @__PURE__ */ map(functorEffect);
     var discard2 = /* @__PURE__ */ discard(discardUnit);
     var throwError2 = /* @__PURE__ */ throwError(monadThrowAff);
-    var selectElement = function(query3) {
+    var selectElement = function(query2) {
       return bind2(liftEffect3(bindFlipped4(composeKleisliFlipped2(function() {
-        var $16 = querySelector(query3);
+        var $16 = querySelector(query2);
         return function($17) {
           return $16(toParentNode($17));
         };
@@ -3980,6 +3955,9 @@
         };
       }
     };
+    var values = /* @__PURE__ */ function() {
+      return foldr(foldableMap)(Cons.create)(Nil.value);
+    }();
     var empty2 = /* @__PURE__ */ function() {
       return Leaf.value;
     }();
@@ -4479,9 +4457,6 @@
       l1.splice(i2, 1);
       return just(l1);
     };
-    var filterImpl = function(f, xs) {
-      return xs.filter(f);
-    };
     var zipWithImpl = function(f, xs, ys) {
       var l = xs.length < ys.length ? xs.length : ys.length;
       var result = new Array(l);
@@ -4579,7 +4554,6 @@
     var findIndex = /* @__PURE__ */ function() {
       return runFn4(findIndexImpl)(Just.create)(Nothing.value);
     }();
-    var filter = /* @__PURE__ */ runFn2(filterImpl);
     var deleteAt = /* @__PURE__ */ function() {
       return runFn4(_deleteAt)(Just.create)(Nothing.value);
     }();
@@ -5336,6 +5310,45 @@
       ;
       return false;
     };
+    var filter = function(p2) {
+      var go2 = function($copy_v) {
+        return function($copy_v1) {
+          var $tco_var_v = $copy_v;
+          var $tco_done = false;
+          var $tco_result;
+          function $tco_loop(v, v1) {
+            if (v1 instanceof Nil) {
+              $tco_done = true;
+              return reverse2(v);
+            }
+            ;
+            if (v1 instanceof Cons) {
+              if (p2(v1.value0)) {
+                $tco_var_v = new Cons(v1.value0, v);
+                $copy_v1 = v1.value1;
+                return;
+              }
+              ;
+              if (otherwise) {
+                $tco_var_v = v;
+                $copy_v1 = v1.value1;
+                return;
+              }
+              ;
+            }
+            ;
+            throw new Error("Failed pattern match at Data.List (line 390, column 3 - line 390, column 27): " + [v.constructor.name, v1.constructor.name]);
+          }
+          ;
+          while (!$tco_done) {
+            $tco_result = $tco_loop($tco_var_v, $copy_v1);
+          }
+          ;
+          return $tco_result;
+        };
+      };
+      return go2(Nil.value);
+    };
     var singleton4 = /* @__PURE__ */ function() {
       var $200 = singleton2(plusList);
       return function($201) {
@@ -5539,7 +5552,7 @@
     });
     var foldr3 = /* @__PURE__ */ foldr(foldableArray);
     var identity7 = /* @__PURE__ */ identity(categoryFn);
-    var values = /* @__PURE__ */ toArrayWithKey(function(v) {
+    var values2 = /* @__PURE__ */ toArrayWithKey(function(v) {
       return function(v1) {
         return v1;
       };
@@ -5605,7 +5618,7 @@
       foldr: function(f) {
         return function(z) {
           return function(m) {
-            return foldr3(f)(z)(values(m));
+            return foldr3(f)(z)(values2(m));
           };
         };
       },
@@ -6577,24 +6590,7 @@
         return tailRecM4(go2);
       };
     };
-    var ChildQuery = /* @__PURE__ */ function() {
-      function ChildQuery3(value0, value1, value22) {
-        this.value0 = value0;
-        this.value1 = value1;
-        this.value2 = value22;
-      }
-      ;
-      ChildQuery3.create = function(value0) {
-        return function(value1) {
-          return function(value22) {
-            return new ChildQuery3(value0, value1, value22);
-          };
-        };
-      };
-      return ChildQuery3;
-    }();
     var unChildQueryBox = unsafeCoerce2;
-    var mkChildQueryBox = unsafeCoerce2;
     function reallyUnsafeRefEq(a2) {
       return function(b2) {
         return a2 === b2;
@@ -6640,7 +6636,6 @@
       };
     };
     var identity9 = /* @__PURE__ */ identity(categoryFn);
-    var lookup4 = /* @__PURE__ */ lookup2();
     var SubscriptionId = function(x) {
       return x;
     };
@@ -6784,30 +6779,6 @@
     var raise = function(o) {
       return liftF(new Raise(o, unit));
     };
-    var query = function() {
-      return function(dictIsSymbol) {
-        var lookup13 = lookup4(dictIsSymbol);
-        return function(dictOrd) {
-          var lookup23 = lookup13(dictOrd);
-          return function(label5) {
-            return function(p2) {
-              return function(q2) {
-                return liftF(new ChildQuery2(mkChildQueryBox(new ChildQuery(function(dictApplicative) {
-                  var pure19 = pure(dictApplicative);
-                  return function(k) {
-                    var $177 = maybe(pure19(Nothing.value))(k);
-                    var $178 = lookup23(label5)(p2);
-                    return function($179) {
-                      return $177($178($179));
-                    };
-                  };
-                }, q2, identity9))));
-              };
-            };
-          };
-        };
-      };
-    };
     var ordSubscriptionId = ordInt;
     var ordForkId = ordInt;
     var monadHalogenM = freeMonad;
@@ -6851,29 +6822,7 @@
       return liftF(new Fork(hmu, identity9));
     };
     var bindHalogenM = freeBind;
-    var bind4 = /* @__PURE__ */ bind(bindHalogenM);
     var applicativeHalogenM = freeApplicative;
-    var pure5 = /* @__PURE__ */ pure(applicativeHalogenM);
-    var monadRecHalogenM = {
-      tailRecM: function(k) {
-        return function(a2) {
-          return bind4(k(a2))(function(v) {
-            if (v instanceof Loop) {
-              return tailRecM(monadRecHalogenM)(k)(v.value0);
-            }
-            ;
-            if (v instanceof Done) {
-              return pure5(v.value0);
-            }
-            ;
-            throw new Error("Failed pattern match at Halogen.Query.HalogenM (line 105, column 26 - line 107, column 21): " + [v.constructor.name]);
-          });
-        };
-      },
-      Monad0: function() {
-        return monadHalogenM;
-      }
-    };
     var Initialize = /* @__PURE__ */ function() {
       function Initialize5(value0) {
         this.value0 = value0;
@@ -6984,8 +6933,8 @@
     var voidLeft2 = /* @__PURE__ */ voidLeft(functorHalogenM);
     var traverse_3 = /* @__PURE__ */ traverse_(applicativeHalogenM)(foldableMaybe);
     var map13 = /* @__PURE__ */ map(functorHalogenM);
-    var pure6 = /* @__PURE__ */ pure(applicativeHalogenM);
-    var lookup5 = /* @__PURE__ */ lookup2();
+    var pure5 = /* @__PURE__ */ pure(applicativeHalogenM);
+    var lookup4 = /* @__PURE__ */ lookup2();
     var pop3 = /* @__PURE__ */ pop2();
     var insert4 = /* @__PURE__ */ insert2();
     var ComponentSlot = /* @__PURE__ */ function() {
@@ -7044,8 +6993,8 @@
     var mkComponent = unsafeCoerce2;
     var defaultEval = /* @__PURE__ */ function() {
       return {
-        handleAction: $$const(pure6(unit)),
-        handleQuery: $$const(pure6(Nothing.value)),
+        handleAction: $$const(pure5(unit)),
+        handleQuery: $$const(pure5(Nothing.value)),
         receive: $$const(Nothing.value),
         initialize: Nothing.value,
         finalize: Nothing.value
@@ -7053,7 +7002,7 @@
     }();
     var componentSlot = function() {
       return function(dictIsSymbol) {
-        var lookup13 = lookup5(dictIsSymbol);
+        var lookup13 = lookup4(dictIsSymbol);
         var pop12 = pop3(dictIsSymbol);
         var insert13 = insert4(dictIsSymbol);
         return function(dictOrd) {
@@ -7177,23 +7126,6 @@
         return log2(show8(a2));
       };
     };
-    var query2 = /* @__PURE__ */ query();
-    var identity10 = /* @__PURE__ */ identity(categoryFn);
-    var request = function() {
-      return function(dictIsSymbol) {
-        var query1 = query2(dictIsSymbol);
-        return function(dictOrd) {
-          var query22 = query1(dictOrd);
-          return function(slot4) {
-            return function(label5) {
-              return function(req) {
-                return query22(slot4)(label5)(req(identity10));
-              };
-            };
-          };
-        };
-      };
-    };
     var unRenderStateX = unsafeCoerce2;
     var unDriverStateX = unsafeCoerce2;
     var renderStateX_ = function(dictApplicative) {
@@ -7260,7 +7192,7 @@
     };
     var traverse_4 = /* @__PURE__ */ traverse_(applicativeEffect)(foldableMaybe);
     var bindFlipped5 = /* @__PURE__ */ bindFlipped(bindMaybe);
-    var lookup6 = /* @__PURE__ */ lookup(ordSubscriptionId);
+    var lookup5 = /* @__PURE__ */ lookup(ordSubscriptionId);
     var bind12 = /* @__PURE__ */ bind(bindAff);
     var liftEffect4 = /* @__PURE__ */ liftEffect(monadEffectAff);
     var discard3 = /* @__PURE__ */ discard(discardUnit);
@@ -7269,7 +7201,7 @@
     var traverse_22 = /* @__PURE__ */ traverse_12(foldableList);
     var fork3 = /* @__PURE__ */ fork2(monadForkAff);
     var parSequence_3 = /* @__PURE__ */ parSequence_(parallelAff)(applicativeParAff)(foldableList);
-    var pure7 = /* @__PURE__ */ pure(applicativeAff);
+    var pure6 = /* @__PURE__ */ pure(applicativeAff);
     var map15 = /* @__PURE__ */ map(functorCoyoneda);
     var parallel3 = /* @__PURE__ */ parallel(parallelAff);
     var map16 = /* @__PURE__ */ map(functorAff);
@@ -7290,7 +7222,7 @@
         return function __do2() {
           var v = read(ref2)();
           var subs = read(v.subscriptions)();
-          return traverse_4(unsubscribe)(bindFlipped5(lookup6(sid))(subs))();
+          return traverse_4(unsubscribe)(bindFlipped5(lookup5(sid))(subs))();
         };
       };
     };
@@ -7319,7 +7251,7 @@
             return bind12(liftEffect4(read(lchs)))(function(v) {
               return discard1(traverse_22(fork3)(v.finalizers))(function() {
                 return discard1(parSequence_3(v.initializers))(function() {
-                  return pure7(result);
+                  return pure6(result);
                 });
               });
             });
@@ -7374,7 +7306,7 @@
                 return bind12(liftEffect4(read(ref2)))(function(v2) {
                   var v3 = v1.value0(v2.state);
                   if (unsafeRefEq(v2.state)(v3.value1)) {
-                    return pure7(v3.value0);
+                    return pure6(v3.value0);
                   }
                   ;
                   if (otherwise) {
@@ -7397,7 +7329,7 @@
                       state: v3.value1
                     })(ref2)))(function() {
                       return discard1(handleLifecycle(v2.lifecycleHandlers)(render5(v2.lifecycleHandlers)(ref2)))(function() {
-                        return pure7(v3.value0);
+                        return pure6(v3.value0);
                       });
                     });
                   }
@@ -7413,7 +7345,7 @@
                   })))(function(finalize) {
                     return bind12(liftEffect4(read(ref2)))(function(v2) {
                       return discard1(liftEffect4(modify_2(map22(insert5(sid)(finalize)))(v2.subscriptions)))(function() {
-                        return pure7(v1.value1(sid));
+                        return pure6(v1.value1(sid));
                       });
                     });
                   });
@@ -7422,7 +7354,7 @@
               ;
               if (v1 instanceof Unsubscribe) {
                 return discard1(liftEffect4(unsubscribe3(v1.value0)(ref2)))(function() {
-                  return pure7(v1.value1);
+                  return pure6(v1.value1);
                 });
               }
               ;
@@ -7438,7 +7370,7 @@
                 return bind12(liftEffect4(read(ref2)))(function(v2) {
                   return bind12(liftEffect4(read(v2.handlerRef)))(function(handler3) {
                     return discard1(queueOrRun(v2.pendingOuts)(handler3(v1.value0)))(function() {
-                      return pure7(v1.value1);
+                      return pure6(v1.value1);
                     });
                   });
                 });
@@ -7462,7 +7394,7 @@
                         return write(true)(doneRef)();
                       }))(evalM(render5)(ref2)(v1.value0))))(function(fiber) {
                         return discard1(liftEffect4(unlessM2(read(doneRef))(modify_2(insert12(fid)(fiber))(v2.forks))))(function() {
-                          return pure7(v1.value1(fid));
+                          return pure6(v1.value1(fid));
                         });
                       });
                     });
@@ -7474,7 +7406,7 @@
                 return bind12(liftEffect4(read(ref2)))(function(v2) {
                   return bind12(liftEffect4(read(v2.forks)))(function(forkMap) {
                     return discard1(traverse_32(joinFiber)(lookup12(v1.value0)(forkMap)))(function() {
-                      return pure7(v1.value1);
+                      return pure6(v1.value1);
                     });
                   });
                 });
@@ -7484,7 +7416,7 @@
                 return bind12(liftEffect4(read(ref2)))(function(v2) {
                   return bind12(liftEffect4(read(v2.forks)))(function(forkMap) {
                     return discard1(traverse_32(killFiber(error("Cancelled")))(lookup12(v1.value0)(forkMap)))(function() {
-                      return pure7(v1.value1);
+                      return pure6(v1.value1);
                     });
                   });
                 });
@@ -7492,7 +7424,7 @@
               ;
               if (v1 instanceof GetRef) {
                 return bind12(liftEffect4(read(ref2)))(function(v2) {
-                  return pure7(v1.value1(lookup22(v1.value0)(v2.refs)));
+                  return pure6(v1.value1(lookup22(v1.value0)(v2.refs)));
                 });
               }
               ;
@@ -7539,7 +7471,7 @@
         };
       };
     };
-    var bind5 = /* @__PURE__ */ bind(bindEffect);
+    var bind4 = /* @__PURE__ */ bind(bindEffect);
     var discard4 = /* @__PURE__ */ discard(discardUnit);
     var for_2 = /* @__PURE__ */ for_(applicativeEffect)(foldableMaybe);
     var traverse_5 = /* @__PURE__ */ traverse_(applicativeAff)(foldableList);
@@ -7551,7 +7483,7 @@
     var discard22 = /* @__PURE__ */ discard4(bindAff);
     var parSequence_4 = /* @__PURE__ */ parSequence_(parallelAff)(applicativeParAff)(foldableList);
     var liftEffect5 = /* @__PURE__ */ liftEffect(monadEffectAff);
-    var pure8 = /* @__PURE__ */ pure(applicativeEffect);
+    var pure7 = /* @__PURE__ */ pure(applicativeEffect);
     var map17 = /* @__PURE__ */ map(functorEffect);
     var pure12 = /* @__PURE__ */ pure(applicativeAff);
     var when2 = /* @__PURE__ */ when(applicativeEffect);
@@ -7685,13 +7617,13 @@
                       })(read(childrenOutRef))();
                       when2(isDuplicate)(warn("Halogen: Duplicate slot address was detected during rendering, unexpected results may occur"))();
                       modify_2(slot4.set($$var2))(childrenOutRef)();
-                      return bind5(read($$var2))(renderStateX2(function(v) {
+                      return bind4(read($$var2))(renderStateX2(function(v) {
                         if (v instanceof Nothing) {
                           return $$throw("Halogen internal error: child was not initialized in renderChild");
                         }
                         ;
                         if (v instanceof Just) {
-                          return pure8(renderSpec2.renderChild(v.value0));
+                          return pure7(renderSpec2.renderChild(v.value0));
                         }
                         ;
                         throw new Error("Failed pattern match at Halogen.Aff.Driver (line 227, column 37 - line 229, column 50): " + [v.constructor.name]);
@@ -7842,7 +7774,7 @@
                   };
                 }())(i2)(component5))();
                 return unDriverStateX(function(st) {
-                  return pure8({
+                  return pure7({
                     query: evalDriver(disposed)(st.selfRef),
                     messages: sio.emitter,
                     dispose: dispose(disposed)(lchs)(dsx)
@@ -7921,12 +7853,12 @@
       };
     };
     var $$void6 = /* @__PURE__ */ $$void(functorEffect);
-    var pure9 = /* @__PURE__ */ pure(applicativeEffect);
+    var pure8 = /* @__PURE__ */ pure(applicativeEffect);
     var traverse_6 = /* @__PURE__ */ traverse_(applicativeEffect)(foldableMaybe);
     var unwrap2 = /* @__PURE__ */ unwrap();
     var when3 = /* @__PURE__ */ when(applicativeEffect);
     var not2 = /* @__PURE__ */ not(/* @__PURE__ */ heytingAlgebraFunction(/* @__PURE__ */ heytingAlgebraFunction(heytingAlgebraBoolean)));
-    var identity11 = /* @__PURE__ */ identity(categoryFn);
+    var identity10 = /* @__PURE__ */ identity(categoryFn);
     var bind14 = /* @__PURE__ */ bind(bindAff);
     var liftEffect6 = /* @__PURE__ */ liftEffect(monadEffectAff);
     var map19 = /* @__PURE__ */ map(functorEffect);
@@ -7942,7 +7874,7 @@
             return $$void6(appendChild(v)(v2.value0));
           }
           ;
-          return pure9(unit);
+          return pure8(unit);
         };
       };
     };
@@ -8068,7 +8000,7 @@
         };
         return {
           render: render5,
-          renderChild: identity11,
+          renderChild: identity10,
           removeChild: removeChild3,
           dispose: removeChild3
         };
@@ -8281,7 +8213,7 @@
       ;
       throw new Error("Failed pattern match at Affjax.RequestHeader (line 21, column 1 - line 21, column 32): " + [v.constructor.name]);
     };
-    var identity12 = /* @__PURE__ */ identity(categoryFn);
+    var identity11 = /* @__PURE__ */ identity(categoryFn);
     var $$ArrayBuffer = /* @__PURE__ */ function() {
       function $$ArrayBuffer2(value0) {
         this.value0 = value0;
@@ -8377,10 +8309,10 @@
       return Nothing.value;
     };
     var json2 = /* @__PURE__ */ function() {
-      return new Json2(identity12);
+      return new Json2(identity11);
     }();
     var ignore = /* @__PURE__ */ function() {
-      return new Ignore(identity12);
+      return new Ignore(identity11);
     }();
     var ResponseHeader = /* @__PURE__ */ function() {
       function ResponseHeader2(value0, value1) {
@@ -8425,6 +8357,7 @@
       return verbJsonType(Nothing.value)(Just.create);
     }();
     var jsonEmptyObject = /* @__PURE__ */ id2(empty4);
+    var isJsonType = /* @__PURE__ */ verbJsonType(false)(/* @__PURE__ */ $$const(true));
     var caseJsonString = function(d) {
       return function(f) {
         return function(j) {
@@ -8447,6 +8380,14 @@
         };
       };
     };
+    var caseJsonNull = function(d) {
+      return function(f) {
+        return function(j) {
+          return _caseJson(f, $$const(d), $$const(d), $$const(d), $$const(d), $$const(d), j);
+        };
+      };
+    };
+    var isNull2 = /* @__PURE__ */ isJsonType(caseJsonNull);
     var caseJsonBoolean = function(d) {
       return function(f) {
         return function(j) {
@@ -8723,7 +8664,7 @@
         };
       });
     };
-    var pure10 = /* @__PURE__ */ pure(/* @__PURE__ */ applicativeExceptT(monadIdentity));
+    var pure9 = /* @__PURE__ */ pure(/* @__PURE__ */ applicativeExceptT(monadIdentity));
     var fail2 = /* @__PURE__ */ fail(monadIdentity);
     var unsafeReadTagged2 = /* @__PURE__ */ unsafeReadTagged(monadIdentity);
     var alt5 = /* @__PURE__ */ alt(/* @__PURE__ */ altExceptT(semigroupNonEmptyList)(monadIdentity));
@@ -8787,12 +8728,12 @@
       return function(req) {
         var parseJSON = function(v2) {
           if (v2 === "") {
-            return pure10(jsonEmptyObject);
+            return pure9(jsonEmptyObject);
           }
           ;
           return either(function($74) {
             return fail2(ForeignError.create($74));
-          })(pure10)(jsonParser(v2));
+          })(pure9)(jsonParser(v2));
         };
         var fromResponse = function() {
           if (req.responseFormat instanceof $$ArrayBuffer) {
@@ -8820,7 +8761,7 @@
           }
           ;
           if (req.responseFormat instanceof Ignore) {
-            return $$const(req.responseFormat.value0(pure10(unit)));
+            return $$const(req.responseFormat.value0(pure9(unit)));
           }
           ;
           throw new Error("Failed pattern match at Affjax (line 274, column 18 - line 283, column 57): " + [req.responseFormat.constructor.name]);
@@ -9232,6 +9173,8 @@
       };
     };
     var take4 = /* @__PURE__ */ _take(takeFallback);
+    var pure10 = /* @__PURE__ */ pure(applicativeEither);
+    var map24 = /* @__PURE__ */ map(functorEither);
     var lmap2 = /* @__PURE__ */ lmap(bifunctorEither);
     var composeKleisliFlipped4 = /* @__PURE__ */ composeKleisliFlipped(bindEither);
     var traverse5 = /* @__PURE__ */ traverse(traversableObject)(applicativeEither);
@@ -9254,6 +9197,19 @@
     var decodeNumber = /* @__PURE__ */ function() {
       return caseJsonNumber(new Left(new TypeMismatch2("Number")))(Right.create);
     }();
+    var decodeMaybe = function(decoder) {
+      return function(json3) {
+        if (isNull2(json3)) {
+          return pure10(Nothing.value);
+        }
+        ;
+        if (otherwise) {
+          return map24(Just.create)(decoder(json3));
+        }
+        ;
+        throw new Error("Failed pattern match at Data.Argonaut.Decode.Decoders (line 37, column 1 - line 41, column 38): " + [decoder.constructor.name, json3.constructor.name]);
+      };
+    };
     var decodeJObject = /* @__PURE__ */ function() {
       var $50 = note(new TypeMismatch2("Object"));
       return function($51) {
@@ -9312,9 +9268,9 @@
         };
       };
     };
-    var bind6 = /* @__PURE__ */ bind(bindEither);
+    var bind5 = /* @__PURE__ */ bind(bindEither);
     var lmap3 = /* @__PURE__ */ lmap(bifunctorEither);
-    var map24 = /* @__PURE__ */ map(functorMaybe);
+    var map25 = /* @__PURE__ */ map(functorMaybe);
     var gDecodeJsonNil = {
       gDecodeJson: function(v) {
         return function(v1) {
@@ -9374,8 +9330,8 @@
                     var fieldValue = lookup3(fieldName)(object2);
                     var v1 = decodeJsonField1(fieldValue);
                     if (v1 instanceof Just) {
-                      return bind6(lmap3(AtKey.create(fieldName))(v1.value0))(function(val) {
-                        return bind6(gDecodeJson1(object2)($$Proxy.value))(function(rest) {
+                      return bind5(lmap3(AtKey.create(fieldName))(v1.value0))(function(val) {
+                        return bind5(gDecodeJson1(object2)($$Proxy.value))(function(rest) {
                           return new Right(insert9($$Proxy.value)(val)(rest));
                         });
                       });
@@ -9400,16 +9356,37 @@
     var decodeJson = function(dict) {
       return dict.decodeJson;
     };
+    var decodeJsonMaybe = function(dictDecodeJson) {
+      return {
+        decodeJson: decodeMaybe(decodeJson(dictDecodeJson))
+      };
+    };
     var decodeForeignObject2 = function(dictDecodeJson) {
       return {
         decodeJson: decodeForeignObject(decodeJson(dictDecodeJson))
+      };
+    };
+    var decodeFieldMaybe = function(dictDecodeJson) {
+      var decodeJson12 = decodeJson(decodeJsonMaybe(dictDecodeJson));
+      return {
+        decodeJsonField: function(v) {
+          if (v instanceof Nothing) {
+            return new Just(new Right(Nothing.value));
+          }
+          ;
+          if (v instanceof Just) {
+            return new Just(decodeJson12(v.value0));
+          }
+          ;
+          throw new Error("Failed pattern match at Data.Argonaut.Decode.Class (line 139, column 1 - line 143, column 49): " + [v.constructor.name]);
+        }
       };
     };
     var decodeFieldId = function(dictDecodeJson) {
       var decodeJson12 = decodeJson(dictDecodeJson);
       return {
         decodeJsonField: function(j) {
-          return map24(decodeJson12)(j);
+          return map25(decodeJson12)(j);
         }
       };
     };
@@ -9443,7 +9420,7 @@
       return toMaybe(_currentTarget($5));
     };
     var click2 = "click";
-    var map25 = /* @__PURE__ */ map(functorMaybe);
+    var map26 = /* @__PURE__ */ map(functorMaybe);
     var composeKleisli2 = /* @__PURE__ */ composeKleisli(bindMaybe);
     var composeKleisliFlipped5 = /* @__PURE__ */ composeKleisliFlipped(/* @__PURE__ */ bindExceptT(monadIdentity));
     var readProp2 = /* @__PURE__ */ readProp(monadIdentity);
@@ -9452,7 +9429,7 @@
     var handler$prime = function(et) {
       return function(f) {
         return handler(et)(function(ev) {
-          return map25(Action.create)(f(ev));
+          return map26(Action.create)(f(ev));
         });
       };
     };
@@ -9487,39 +9464,10 @@
       };
     };
     var onValueInput = /* @__PURE__ */ addForeignPropHandler(input)("value")(readString2);
-    var readDir = (dirPath) => {
-      return window.electronAPI.readDir(dirPath);
-    };
-    var map26 = /* @__PURE__ */ map(functorArray);
-    var getTotalFrames = function(dir2) {
-      return function __do2() {
-        var entries = readDir(dir2)();
-        var files2 = filter(function($8) {
-          return !function(v) {
-            return v.isDir;
-          }($8);
-        })(entries);
-        return length3(files2);
-      };
-    };
-    var getAllDirInDir = function(dir2) {
-      return function __do2() {
-        var entries = readDir(dir2)();
-        var dirs = filter(function(v) {
-          return v.isDir;
-        })(entries);
-        return map26(function(v) {
-          return v.name;
-        })(dirs);
-      };
-    };
-    var getField2 = function(dictDecodeJson) {
-      return getField(decodeJson(dictDecodeJson));
-    };
     var fromFoldable5 = /* @__PURE__ */ fromFoldable(ordString)(foldableArray);
     var fromFoldable1 = /* @__PURE__ */ fromFoldable2(foldableArray);
     var map27 = /* @__PURE__ */ map(functorArray);
-    var bind7 = /* @__PURE__ */ bind(bindEither);
+    var bind6 = /* @__PURE__ */ bind(bindEither);
     var pure11 = /* @__PURE__ */ pure(applicativeEither);
     var Waiting = /* @__PURE__ */ function() {
       function Waiting2() {
@@ -9555,13 +9503,36 @@
           videoName: key,
           state: Waiting.value,
           outputDir: "",
-          totalFrames: 0
+          totalFrames: Nothing.value
         });
       })(names)));
     };
+    var eqJobState = {
+      eq: function(x) {
+        return function(y) {
+          if (x instanceof Waiting && y instanceof Waiting) {
+            return true;
+          }
+          ;
+          if (x instanceof Processing && y instanceof Processing) {
+            return true;
+          }
+          ;
+          if (x instanceof Done2 && y instanceof Done2) {
+            return true;
+          }
+          ;
+          if (x instanceof $$Error && y instanceof $$Error) {
+            return true;
+          }
+          ;
+          return false;
+        };
+      }
+    };
     var decodeJobState = {
       decodeJson: function(json3) {
-        return bind7(decodeString(json3))(function(s) {
+        return bind6(decodeString(json3))(function(s) {
           if (s === "Waiting") {
             return pure11(Waiting.value);
           }
@@ -9582,12 +9553,15 @@
         });
       }
     };
-    var bind8 = /* @__PURE__ */ bind(bindEither);
+    var getField2 = function(dictDecodeJson) {
+      return getField(decodeJson(dictDecodeJson));
+    };
+    var bind7 = /* @__PURE__ */ bind(bindEither);
     var decodeJson2 = /* @__PURE__ */ decodeJson(/* @__PURE__ */ decodeForeignObject2(decodeJsonJson));
     var getField3 = /* @__PURE__ */ getField2(decodeJsonString);
     var pure14 = /* @__PURE__ */ pure(applicativeEither);
     var gDecodeJsonCons2 = /* @__PURE__ */ gDecodeJsonCons(/* @__PURE__ */ decodeFieldId(decodeJsonString));
-    var getField1 = /* @__PURE__ */ getField2(/* @__PURE__ */ decodeArray2(/* @__PURE__ */ decodeRecord(/* @__PURE__ */ gDecodeJsonCons2(/* @__PURE__ */ gDecodeJsonCons(/* @__PURE__ */ decodeFieldId(decodeJobState))(/* @__PURE__ */ gDecodeJsonCons(/* @__PURE__ */ decodeFieldId(decodeJsonInt))(/* @__PURE__ */ gDecodeJsonCons2(gDecodeJsonNil)({
+    var getField1 = /* @__PURE__ */ getField2(/* @__PURE__ */ decodeArray2(/* @__PURE__ */ decodeRecord(/* @__PURE__ */ gDecodeJsonCons2(/* @__PURE__ */ gDecodeJsonCons(/* @__PURE__ */ decodeFieldId(decodeJobState))(/* @__PURE__ */ gDecodeJsonCons(/* @__PURE__ */ decodeFieldMaybe(decodeJsonInt))(/* @__PURE__ */ gDecodeJsonCons2(gDecodeJsonNil)({
       reflectSymbol: function() {
         return "videoName";
       }
@@ -9690,9 +9664,9 @@
     };
     var decodeMakeCuts = {
       decodeJson: function(json3) {
-        return bind8(decodeJson2(json3))(function(obj) {
-          return bind8(getField3(obj)("tempDirPath"))(function(tempDirPath) {
-            return bind8(getField3(obj)("requestID"))(function(requestID) {
+        return bind7(decodeJson2(json3))(function(obj) {
+          return bind7(getField3(obj)("tempDirPath"))(function(tempDirPath) {
+            return bind7(getField3(obj)("requestID"))(function(requestID) {
               return pure14({
                 tempDirPath,
                 requestID
@@ -9705,8 +9679,8 @@
     var decodeJson1 = /* @__PURE__ */ decodeJson(decodeMakeCuts);
     var decodeInputResult = {
       decodeJson: function(json3) {
-        return bind8(decodeJson2(json3))(function(obj) {
-          return bind8(getField3(obj)("result"))(function(result) {
+        return bind7(decodeJson2(json3))(function(obj) {
+          return bind7(getField3(obj)("result"))(function(result) {
             return pure14({
               result
             });
@@ -9717,9 +9691,9 @@
     var decodeJson22 = /* @__PURE__ */ decodeJson(decodeInputResult);
     var decodeFileResult = {
       decodeJson: function(json3) {
-        return bind8(decodeJson2(json3))(function(obj) {
-          return bind8(getField3(obj)("fileName"))(function(fileName) {
-            return bind8(getField3(obj)("fileContent"))(function(fileContent) {
+        return bind7(decodeJson2(json3))(function(obj) {
+          return bind7(getField3(obj)("fileName"))(function(fileName) {
+            return bind7(getField3(obj)("fileContent"))(function(fileContent) {
               return pure14({
                 fileName,
                 fileContent
@@ -9732,8 +9706,8 @@
     var decodeJson3 = /* @__PURE__ */ decodeJson(decodeFileResult);
     var decodeDeviceResult = {
       decodeJson: function(json3) {
-        return bind8(decodeJson2(json3))(function(obj) {
-          return bind8(getField3(obj)("userDevice"))(function(userDevice) {
+        return bind7(decodeJson2(json3))(function(obj) {
+          return bind7(getField3(obj)("userDevice"))(function(userDevice) {
             return pure14({
               userDevice
             });
@@ -9744,8 +9718,8 @@
     var decodeJson4 = /* @__PURE__ */ decodeJson(decodeDeviceResult);
     var decodeCutVideo = {
       decodeJson: function(json3) {
-        return bind8(decodeJson2(json3))(function(obj) {
-          return bind8(getField3(obj)("tempDirPath"))(function(tempDirPath) {
+        return bind7(decodeJson2(json3))(function(obj) {
+          return bind7(getField3(obj)("tempDirPath"))(function(tempDirPath) {
             return pure14({
               tempDirPath
             });
@@ -9756,8 +9730,8 @@
     var decodeJson5 = /* @__PURE__ */ decodeJson(decodeCutVideo);
     var decodeCutCutCut = {
       decodeJson: function(json3) {
-        return bind8(decodeJson2(json3))(function(obj) {
-          return bind8(getField3(obj)("error"))(function(error4) {
+        return bind7(decodeJson2(json3))(function(obj) {
+          return bind7(getField3(obj)("error"))(function(error4) {
             return pure14({
               error: error4
             });
@@ -9768,9 +9742,9 @@
     var decodeJson6 = /* @__PURE__ */ decodeJson(decodeCutCutCut);
     var decodeAskProgress = {
       decodeJson: function(json3) {
-        return bind8(decodeJson2(json3))(function(obj) {
-          return bind8(getField1(obj)("updateJobs"))(function(updateJobs) {
-            return bind8(getField22(obj)("isComplete"))(function(isComplete) {
+        return bind7(decodeJson2(json3))(function(obj) {
+          return bind7(getField1(obj)("updateJobs"))(function(updateJobs) {
+            return bind7(getField22(obj)("isComplete"))(function(isComplete) {
               return pure14({
                 updateJobs,
                 isComplete
@@ -9816,12 +9790,12 @@
     };
     var decodeApiResponse = {
       decodeJson: function(json3) {
-        return bind8(decodeJson2(json3))(function(obj) {
-          return bind8(getField3(obj)("r_type"))(function(t) {
-            return bind8(getField3(obj)("message"))(function(message2) {
-              return bind8(getField32(obj)("result"))(function(rawResult) {
-                return bind8(getField22(obj)("success"))(function(success) {
-                  return bind8(pure14(decodeResult(t)(rawResult)))(function(result) {
+        return bind7(decodeJson2(json3))(function(obj) {
+          return bind7(getField3(obj)("r_type"))(function(t) {
+            return bind7(getField3(obj)("message"))(function(message2) {
+              return bind7(getField32(obj)("result"))(function(rawResult) {
+                return bind7(getField22(obj)("success"))(function(success) {
+                  return bind7(pure14(decodeResult(t)(rawResult)))(function(result) {
                     return pure14({
                       message: message2,
                       result,
@@ -9889,12 +9863,21 @@
       })(alt6(toError(rej))(map111(error)(hush(runExcept(readString3(unsafeToForeign(rej)))))));
     };
     var toAff = /* @__PURE__ */ toAff$prime(coerce3);
+    var $runtime_lazy9 = function(name17, moduleName, init3) {
+      var state3 = 0;
+      var val;
+      return function(lineNumber) {
+        if (state3 === 2) return val;
+        if (state3 === 1) throw new ReferenceError(name17 + " was needed before it finished initializing (module " + moduleName + ", line " + lineNumber + ")", moduleName, lineNumber);
+        state3 = 1;
+        val = init3();
+        state3 = 2;
+        return val;
+      };
+    };
     var modify_3 = /* @__PURE__ */ modify_(monadStateHalogenM);
-    var bind9 = /* @__PURE__ */ bind(bindHalogenM);
-    var get3 = /* @__PURE__ */ get(monadStateHalogenM);
-    var pure15 = /* @__PURE__ */ pure(applicativeHalogenM);
     var bindExceptT2 = /* @__PURE__ */ bindExceptT(monadHalogenM);
-    var bind15 = /* @__PURE__ */ bind(bindExceptT2);
+    var bind8 = /* @__PURE__ */ bind(bindExceptT2);
     var except2 = /* @__PURE__ */ except(applicativeHalogenM);
     var lmap4 = /* @__PURE__ */ lmap(bifunctorEither);
     var show4 = /* @__PURE__ */ show(showJsonDecodeError);
@@ -9904,22 +9887,14 @@
     var lift4 = /* @__PURE__ */ lift(monadTransExceptT)(monadHalogenM);
     var foldl3 = /* @__PURE__ */ foldl(foldableArray);
     var insert8 = /* @__PURE__ */ insert(ordString);
-    var pure16 = /* @__PURE__ */ pure(/* @__PURE__ */ applicativeExceptT(monadHalogenM));
+    var pure15 = /* @__PURE__ */ pure(/* @__PURE__ */ applicativeExceptT(monadHalogenM));
     var throwError3 = /* @__PURE__ */ throwError(/* @__PURE__ */ monadThrowExceptT(monadHalogenM));
-    var discard23 = /* @__PURE__ */ discard5(bindHalogenM);
-    var $$void7 = /* @__PURE__ */ $$void(functorHalogenM);
-    var forever2 = /* @__PURE__ */ forever(monadRecHalogenM);
+    var bind15 = /* @__PURE__ */ bind(bindHalogenM);
+    var get3 = /* @__PURE__ */ get(monadStateHalogenM);
     var when4 = /* @__PURE__ */ when(applicativeHalogenM);
-    var GetDone = /* @__PURE__ */ function() {
-      function GetDone2(value0) {
-        this.value0 = value0;
-      }
-      ;
-      GetDone2.create = function(value0) {
-        return new GetDone2(value0);
-      };
-      return GetDone2;
-    }();
+    var discard23 = /* @__PURE__ */ discard5(bindHalogenM);
+    var pure16 = /* @__PURE__ */ pure(applicativeHalogenM);
+    var $$void7 = /* @__PURE__ */ $$void(functorHalogenM);
     var Msg = /* @__PURE__ */ function() {
       function Msg2(value0) {
         this.value0 = value0;
@@ -9929,6 +9904,16 @@
         return new Msg2(value0);
       };
       return Msg2;
+    }();
+    var VideoTable = /* @__PURE__ */ function() {
+      function VideoTable2(value0) {
+        this.value0 = value0;
+      }
+      ;
+      VideoTable2.create = function(value0) {
+        return new VideoTable2(value0);
+      };
+      return VideoTable2;
     }();
     var Done3 = /* @__PURE__ */ function() {
       function Done5() {
@@ -9963,16 +9948,16 @@
     }();
     var updateState = function(input3) {
       return modify_3(function(st) {
-        var $45 = {};
-        for (var $46 in st) {
-          if ({}.hasOwnProperty.call(st, $46)) {
-            $45[$46] = st[$46];
+        var $42 = {};
+        for (var $43 in st) {
+          if ({}.hasOwnProperty.call(st, $43)) {
+            $42[$43] = st[$43];
           }
           ;
         }
         ;
-        $45.requestID = input3.requestID;
-        return $45;
+        $42.requestID = input3.requestID;
+        return $42;
       });
     };
     var render = function(state3) {
@@ -9993,34 +9978,34 @@
             return new Left("can't get result.result");
           }
           ;
-          throw new Error("Failed pattern match at Widget.CutVideo.AskProgress (line 183, column 36 - line 186, column 46): " + [v.result.constructor.name]);
+          throw new Error("Failed pattern match at Widget.CutVideo.AskProgress (line 179, column 36 - line 182, column 46): " + [v.result.constructor.name]);
         };
-        return bind15(except2(lmap4(function(err) {
+        return bind8(except2(lmap4(function(err) {
           return "internet error: " + printError(err);
         })(e_respond)))(function(respond) {
-          return bind15(except2(lmap4(function(e) {
+          return bind8(except2(lmap4(function(e) {
             return "JSON decode error: " + show4(e);
           })(decodeJson8(respond.body))))(function(apiResp) {
-            return bind15(except2(getRr(apiResp)))(function(rr) {
+            return bind8(except2(getRr(apiResp)))(function(rr) {
               if (apiResp.success) {
                 return discard12(lift4(modify_3(function(st) {
-                  var $59 = {};
-                  for (var $60 in st) {
-                    if ({}.hasOwnProperty.call(st, $60)) {
-                      $59[$60] = st[$60];
+                  var $55 = {};
+                  for (var $56 in st) {
+                    if ({}.hasOwnProperty.call(st, $56)) {
+                      $55[$56] = st[$56];
                     }
                     ;
                   }
                   ;
-                  $59.isComplete = rr.isComplete;
-                  $59.videoTable = foldl3(function(m) {
+                  $55.isComplete = rr.isComplete;
+                  $55.videoTable = foldl3(function(m) {
                     return function(job) {
                       return insert8(job.videoName)(job)(m);
                     };
                   })(st.videoTable)(rr.updateJobs);
-                  return $59;
+                  return $55;
                 })))(function() {
-                  return pure16(apiResp.message);
+                  return pure15(apiResp.message);
                 });
               }
               ;
@@ -10031,21 +10016,25 @@
       };
     };
     var handleAction = function(dictMonadAff) {
-      var liftEffect8 = liftEffect(monadEffectHalogenM(dictMonadAff.MonadEffect0()));
       var liftAff2 = liftAff(monadAffHalogenM(dictMonadAff));
+      var liftEffect7 = liftEffect(monadEffectHalogenM(dictMonadAff.MonadEffect0()));
       var doRespond1 = doRespond(dictMonadAff);
       return function(action2) {
         if (action2 instanceof Initialize2) {
-          return discard23(pure15(unit))(function() {
+          var $lazy_go = $runtime_lazy9("go", "Widget.CutVideo.AskProgress", function() {
+            return bind15(get3)(function(st) {
+              return when4(!st.isComplete)(discard23(handleAction(dictMonadAff)(SendRequest.value))(function() {
+                return discard23(liftAff2(delay(1e3)))(function() {
+                  return $lazy_go(115);
+                });
+              }));
+            });
+          });
+          var go2 = $lazy_go(110);
+          return discard23(pure16(unit))(function() {
             return discard23(raise(new Msg("\u4E0A\u50B3\u4E2D...")))(function() {
-              return discard23(liftEffect8(log2("AskProgress\u5143\u4EF6\u5DF2\u521D\u59CB\u5316")))(function() {
-                return $$void7(fork(forever2(discard23(liftAff2(delay(1e3)))(function() {
-                  return bind9(get3)(function(st) {
-                    return discard23(liftEffect8(log2("requestID: " + st.requestID)))(function() {
-                      return handleAction(dictMonadAff)(SendRequest.value);
-                    });
-                  });
-                }))));
+              return discard23(liftEffect7(log2("AskProgress\u5143\u4EF6\u5DF2\u521D\u59CB\u5316")))(function() {
+                return $$void7(fork(go2));
               });
             });
           });
@@ -10056,48 +10045,42 @@
         }
         ;
         if (action2 instanceof SendRequest) {
-          return bind9(get3)(function(old_st) {
-            return when4(!old_st.isComplete)(discard23(liftEffect8(log2("AskProgress\u4E1Frequest")))(function() {
-              return bind9(liftAff2(request3({
-                content: defaultRequest.content,
-                username: defaultRequest.username,
-                password: defaultRequest.password,
-                withCredentials: defaultRequest.withCredentials,
-                timeout: defaultRequest.timeout,
-                url: "http://127.0.0.1:666/api/cut/askProgress/?" + ("requestID=" + old_st.requestID),
-                method: new Left(GET2.value),
-                responseFormat: json2,
-                headers: [new RequestHeader("Accept", "application/json")]
-              })))(function(m_respond) {
-                return discard23(liftEffect8(log2("AskProgress\u6536response")))(function() {
-                  return bind9(runExceptT(doRespond1(m_respond)))(function(exceptT) {
-                    return discard23(function() {
-                      if (exceptT instanceof Right) {
-                        return raise(new Msg(exceptT.value0));
-                      }
-                      ;
-                      if (exceptT instanceof Left) {
-                        return raise(new Msg(exceptT.value0));
-                      }
-                      ;
-                      throw new Error("Failed pattern match at Widget.CutVideo.AskProgress (line 142, column 7 - line 146, column 31): " + [exceptT.constructor.name]);
-                    }())(function() {
-                      return bind9(get3)(function(st) {
-                        if (st.isComplete) {
-                          return raise(Done3.value);
-                        }
-                        ;
-                        return pure15(unit);
-                      });
+          return bind15(get3)(function(old_st) {
+            return bind15(liftAff2(request3({
+              content: defaultRequest.content,
+              username: defaultRequest.username,
+              password: defaultRequest.password,
+              withCredentials: defaultRequest.withCredentials,
+              timeout: defaultRequest.timeout,
+              url: "http://127.0.0.1:666/api/cut/askProgress/?" + ("requestID=" + old_st.requestID),
+              method: new Left(GET2.value),
+              responseFormat: json2,
+              headers: [new RequestHeader("Accept", "application/json")]
+            })))(function(m_respond) {
+              return bind15(runExceptT(doRespond1(m_respond)))(function(exceptT) {
+                return discard23(function() {
+                  if (exceptT instanceof Right) {
+                    return raise(new Msg(exceptT.value0));
+                  }
+                  ;
+                  if (exceptT instanceof Left) {
+                    return raise(new Msg(exceptT.value0));
+                  }
+                  ;
+                  throw new Error("Failed pattern match at Widget.CutVideo.AskProgress (line 137, column 5 - line 141, column 29): " + [exceptT.constructor.name]);
+                }())(function() {
+                  return bind15(get3)(function(st) {
+                    return discard23(raise(new VideoTable(st.videoTable)))(function() {
+                      return when4(st.isComplete)(raise(Done3.value));
                     });
                   });
                 });
               });
-            }));
+            });
           });
         }
         ;
-        throw new Error("Failed pattern match at Widget.CutVideo.AskProgress (line 108, column 23 - line 151, column 18): " + [action2.constructor.name]);
+        throw new Error("Failed pattern match at Widget.CutVideo.AskProgress (line 101, column 23 - line 145, column 19): " + [action2.constructor.name]);
       };
     };
     var component = function(dictMonadAff) {
@@ -10116,15 +10099,15 @@
           finalize: defaultEval.finalize,
           initialize: new Just(Initialize2.value),
           handleAction: handleAction(dictMonadAff),
-          receive: function($73) {
-            return Just.create(Receive2.create($73));
+          receive: function($68) {
+            return Just.create(Receive2.create($68));
           }
         })
       });
     };
     var modify_4 = /* @__PURE__ */ modify_(monadStateHalogenM);
     var map30 = /* @__PURE__ */ map(functorArray);
-    var bind10 = /* @__PURE__ */ bind(/* @__PURE__ */ bindExceptT(monadHalogenM));
+    var bind9 = /* @__PURE__ */ bind(/* @__PURE__ */ bindExceptT(monadHalogenM));
     var except3 = /* @__PURE__ */ except(applicativeHalogenM);
     var lmap5 = /* @__PURE__ */ lmap(bifunctorEither);
     var show5 = /* @__PURE__ */ show(showJsonDecodeError);
@@ -10246,13 +10229,13 @@
           ;
           throw new Error("Failed pattern match at Widget.CutVideo.CutCutCut (line 196, column 36 - line 199, column 46): " + [v.result.constructor.name]);
         };
-        return bind10(except3(lmap5(function(err) {
+        return bind9(except3(lmap5(function(err) {
           return "internet error: " + printError(err);
         })(e_respond)))(function(respond) {
-          return bind10(except3(lmap5(function(e) {
+          return bind9(except3(lmap5(function(e) {
             return "JSON decode error: " + show5(e);
           })(decodeJson9(respond.body))))(function(apiResp) {
-            return bind10(except3(getRr(apiResp)))(function(rr) {
+            return bind9(except3(getRr(apiResp)))(function(rr) {
               if (apiResp.success) {
                 return modify_1(function(st) {
                   var $49 = {};
@@ -10275,13 +10258,13 @@
       };
     };
     var handleAction2 = function(dictMonadAff) {
-      var liftEffect8 = liftEffect(monadEffectHalogenM(dictMonadAff.MonadEffect0()));
+      var liftEffect7 = liftEffect(monadEffectHalogenM(dictMonadAff.MonadEffect0()));
       var liftAff2 = liftAff(monadAffHalogenM(dictMonadAff));
       var doRespond1 = doRespond2(dictMonadAff);
       return function(action2) {
         if (action2 instanceof Initialize3) {
           return discard6(raise(new Submit(Ready.value)))(function() {
-            return liftEffect8(log2("CutCutCut\u5143\u4EF6\u5DF2\u521D\u59CB\u5316"));
+            return liftEffect7(log2("CutCutCut\u5143\u4EF6\u5DF2\u521D\u59CB\u5316"));
           });
         }
         ;
@@ -10291,7 +10274,7 @@
         ;
         if (action2 instanceof ClickButton) {
           return discard6(raise(new Submit(Handling.value)))(function() {
-            return discard6(liftEffect8(log2("Button \u958B\u526A")))(function() {
+            return discard6(liftEffect7(log2("Button \u958B\u526A")))(function() {
               return bind16(get4)(function(old_st) {
                 var arg_op = function() {
                   if (old_st.isOpTimeEnable) {
@@ -10397,41 +10380,38 @@
     var type_19 = /* @__PURE__ */ type_17(isPropInputType);
     var value14 = /* @__PURE__ */ value12(isPropString);
     var append12 = /* @__PURE__ */ append(semigroupArray);
-    var discard7 = /* @__PURE__ */ discard(discardUnit);
-    var liftEffect7 = /* @__PURE__ */ liftEffect(monadEffectEffect);
-    var logShow2 = /* @__PURE__ */ logShow(showString);
-    var traverse3 = /* @__PURE__ */ traverse(traversableArray)(applicativeEffect);
+    var fromFoldable6 = /* @__PURE__ */ fromFoldable2(foldableList);
+    var eq12 = /* @__PURE__ */ eq(eqJobState);
     var max6 = /* @__PURE__ */ max(ordInt);
+    var bind10 = /* @__PURE__ */ bind(bindHalogenM);
+    var get5 = /* @__PURE__ */ get(monadStateHalogenM);
+    var discard7 = /* @__PURE__ */ discard(discardUnit);
+    var discard13 = /* @__PURE__ */ discard7(bindHalogenM);
+    var logShow2 = /* @__PURE__ */ logShow(showString);
+    var modify_5 = /* @__PURE__ */ modify_(monadStateHalogenM);
+    var bindExceptT3 = /* @__PURE__ */ bindExceptT(monadHalogenM);
+    var bind17 = /* @__PURE__ */ bind(bindExceptT3);
+    var except4 = /* @__PURE__ */ except(applicativeHalogenM);
+    var lmap6 = /* @__PURE__ */ lmap(bifunctorEither);
+    var show13 = /* @__PURE__ */ show(showJsonDecodeError);
+    var decodeJson10 = /* @__PURE__ */ decodeJson(decodeApiResponse);
+    var discard24 = /* @__PURE__ */ discard7(bindExceptT3);
+    var lift5 = /* @__PURE__ */ lift(monadTransExceptT)(monadHalogenM);
+    var throwError5 = /* @__PURE__ */ throwError(/* @__PURE__ */ monadThrowExceptT(monadHalogenM));
+    var pure18 = /* @__PURE__ */ pure(applicativeHalogenM);
+    var show22 = /* @__PURE__ */ show(/* @__PURE__ */ showArray(showString));
+    var eq22 = /* @__PURE__ */ eq(/* @__PURE__ */ eqArray(eqString));
     var slot2 = /* @__PURE__ */ slot();
-    var wapSlotIsSymbol = {
+    var slot1 = /* @__PURE__ */ slot2({
       reflectSymbol: function() {
         return "wapSlot";
       }
-    };
-    var slot1 = /* @__PURE__ */ slot2(wapSlotIsSymbol)(ordUnit);
+    })(ordUnit);
     var slot22 = /* @__PURE__ */ slot2({
       reflectSymbol: function() {
         return "wcccSlot";
       }
     })(ordUnit);
-    var bind17 = /* @__PURE__ */ bind(bindHalogenM);
-    var get5 = /* @__PURE__ */ get(monadStateHalogenM);
-    var request4 = /* @__PURE__ */ request()(wapSlotIsSymbol)(ordUnit);
-    var discard24 = /* @__PURE__ */ discard7(bindHalogenM);
-    var show13 = /* @__PURE__ */ show(/* @__PURE__ */ showMaybe(showInt));
-    var modify_5 = /* @__PURE__ */ modify_(monadStateHalogenM);
-    var bindExceptT3 = /* @__PURE__ */ bindExceptT(monadHalogenM);
-    var bind22 = /* @__PURE__ */ bind(bindExceptT3);
-    var except4 = /* @__PURE__ */ except(applicativeHalogenM);
-    var lmap6 = /* @__PURE__ */ lmap(bifunctorEither);
-    var show22 = /* @__PURE__ */ show(showJsonDecodeError);
-    var decodeJson10 = /* @__PURE__ */ decodeJson(decodeApiResponse);
-    var discard32 = /* @__PURE__ */ discard7(bindExceptT3);
-    var lift5 = /* @__PURE__ */ lift(monadTransExceptT)(monadHalogenM);
-    var throwError5 = /* @__PURE__ */ throwError(/* @__PURE__ */ monadThrowExceptT(monadHalogenM));
-    var pure18 = /* @__PURE__ */ pure(applicativeHalogenM);
-    var show32 = /* @__PURE__ */ show(/* @__PURE__ */ showArray(showString));
-    var eq12 = /* @__PURE__ */ eq(/* @__PURE__ */ eqArray(eqString));
     var Radio = /* @__PURE__ */ function() {
       function Radio2(value0, value1, value22, value32) {
         this.value0 = value0;
@@ -10570,6 +10550,7 @@
       edTime: "00:00.000",
       showAPslot: false,
       askProgressMsg: "",
+      ap_videoTable: /* @__PURE__ */ mkJobMap([]),
       showCCCslot: false,
       cutcutcutMsg: ""
     };
@@ -10598,7 +10579,7 @@
       return function(isAlignRight) {
         return function(fps) {
           return function(v) {
-            return function(done) {
+            return function(videoTable) {
               var timeToString = function(t) {
                 var pad3 = function(n) {
                   if (n < 10) {
@@ -10613,11 +10594,11 @@
                     return show6(n);
                   }
                   ;
-                  throw new Error("Failed pattern match at Widget.CutVideo (line 311, column 5 - line 314, column 27): " + [n.constructor.name]);
+                  throw new Error("Failed pattern match at Widget.CutVideo (line 320, column 5 - line 323, column 27): " + [n.constructor.name]);
                 };
                 var pad2 = function(n) {
-                  var $133 = n < 10;
-                  if ($133) {
+                  var $127 = n < 10;
+                  if ($127) {
                     return "0" + show6(n);
                   }
                   ;
@@ -10631,12 +10612,12 @@
               var text6 = function(index4) {
                 return timeToString(index4 / toNumber(fps));
               };
-              var topControls = function(maxFrames) {
+              var topControls = function(maxFrames2) {
                 return function(op_or_ed) {
                   var makeLabel = function(index4) {
                     return label_([input2([type_19(InputRadio.value), name15("radio-group-" + op_or_ed), value14(text6(index4)), checked2(text6(index4) === function() {
-                      var $134 = op_or_ed === "op";
-                      if ($134) {
+                      var $128 = op_or_ed === "op";
+                      if ($128) {
                         return v.value1;
                       }
                       ;
@@ -10645,15 +10626,15 @@
                       return new ClickTime(op_or_ed, text6(index4));
                     })])]);
                   };
-                  return map31(makeLabel)(map31(toNumber)(range2(0)(maxFrames - 1 | 0)));
+                  return map31(makeLabel)(map31(toNumber)(range2(0)(maxFrames2 - 1 | 0)));
                 };
               };
               var radioLabel = function(s) {
                 return div2([style("white-space: nowrap;")])([text5(s)]);
               };
-              var imgRow = function(maxFrames) {
+              var imgRow = function(maxFrames2) {
                 return function(dirPath) {
-                  return function(totalFrames) {
+                  return function(totalFrames2) {
                     var pathToRender = function(path) {
                       return img([src9(path), style("margin-right: 5px; height: 100px;")]);
                     };
@@ -10669,16 +10650,16 @@
                         return td([style("padding: 2px;")])([]);
                       }
                       ;
-                      throw new Error("Failed pattern match at Widget.CutVideo (line 260, column 5 - line 260, column 69): " + [v1.constructor.name]);
+                      throw new Error("Failed pattern match at Widget.CutVideo (line 269, column 5 - line 269, column 69): " + [v1.constructor.name]);
                     };
-                    var imgTd = map31(function($255) {
+                    var imgTd = map31(function($248) {
                       return function(x) {
                         return makeTd(new Just(x));
-                      }(pathToRender(numToPath($255)));
-                    })(range2(1)(totalFrames));
+                      }(pathToRender(numToPath($248)));
+                    })(range2(1)(totalFrames2));
                     var fillerTd = function() {
                       if (isAlignRight) {
-                        return replicate(maxFrames - totalFrames | 0)(makeTd(Nothing.value));
+                        return replicate(maxFrames2 - totalFrames2 | 0)(makeTd(Nothing.value));
                       }
                       ;
                       return [];
@@ -10687,11 +10668,11 @@
                   };
                 };
               };
-              var getTimeRow = function(maxFrames) {
+              var getTimeRow = function(maxFrames2) {
                 var makeLabel = function(index4) {
                   return label_([text5(text6(index4))]);
                 };
-                return map31(makeLabel)(map31(toNumber)(range2(0)(maxFrames - 1 | 0)));
+                return map31(makeLabel)(map31(toNumber)(range2(0)(maxFrames2 - 1 | 0)));
               };
               var addRowLabel = function(div1) {
                 return function(labelArr) {
@@ -10700,41 +10681,503 @@
                   })(labelArr)));
                 };
               };
-              return function __do2() {
-                liftEffect7(log2("tempDirPath:"))();
-                liftEffect7(logShow2(tempDirPath))();
-                var dirsName = getAllDirInDir(tempDirPath)();
-                var dirPaths = map31(function(x) {
-                  return replaceAll("\\")("/")(tempDirPath) + ("/" + x);
-                })(dirsName);
-                var totalFrames = traverse3(getTotalFrames)(dirPaths)();
-                var maxFrames = foldl2(max6)(0)(totalFrames);
-                var opRow = addRowLabel(radioLabel("\u526A\u958B\u982D"))(topControls(maxFrames)("op"));
-                var timeRow = addRowLabel(radioLabel("\u6B32\u522A\u9664\u6642\u9593"))(getTimeRow(maxFrames));
-                var imgRows = map31(function(v1) {
-                  return imgRow(maxFrames)(v1.value0)(v1.value1);
-                })(zip(dirPaths)(totalFrames));
-                var edRow = addRowLabel(radioLabel("\u526A\u7247\u5C3E"))(topControls(maxFrames)("ed"));
-                var htmlTable = table([style("border-collapse: collapse; width: 100%;")])(append12([timeRow])(append12([tbody_(function() {
-                  if (v.value0) {
-                    return [opRow];
-                  }
-                  ;
-                  return [];
-                }())])(append12([tbody_(function() {
-                  if (v.value2) {
-                    return [edRow];
-                  }
-                  ;
-                  return [];
-                }())])(map31(function(x) {
-                  return tbody_([x]);
-                })(imgRows)))));
-                return htmlTable;
+              var normalizePath = function(path) {
+                return replaceAll("\\")("/")(path);
               };
+              var doneJobs = fromFoldable6(filter(function(job) {
+                return eq12(job.state)(Done2.value);
+              })(values(videoTable)));
+              var totalFrames = map31(function() {
+                var $249 = fromMaybe(0);
+                return function($250) {
+                  return $249(function(v1) {
+                    return v1.totalFrames;
+                  }($250));
+                };
+              }())(doneJobs);
+              var maxFrames = foldl2(max6)(0)(totalFrames);
+              var edRow = addRowLabel(radioLabel("\u526A\u7247\u5C3E"))(topControls(maxFrames)("ed"));
+              var opRow = addRowLabel(radioLabel("\u526A\u958B\u982D"))(topControls(maxFrames)("op"));
+              var timeRow = addRowLabel(radioLabel("\u6B32\u522A\u9664\u6642\u9593"))(getTimeRow(maxFrames));
+              var dirPaths = map31(function($251) {
+                return normalizePath(function(v1) {
+                  return v1.outputDir;
+                }($251));
+              })(doneJobs);
+              var imgRows = map31(function(v1) {
+                return imgRow(maxFrames)(v1.value0)(v1.value1);
+              })(zip(dirPaths)(totalFrames));
+              var htmlTable = table([style("border-collapse: collapse; width: 100%;")])(append12([timeRow])(append12([tbody_(function() {
+                if (v.value0) {
+                  return [opRow];
+                }
+                ;
+                return [];
+              }())])(append12([tbody_(function() {
+                if (v.value2) {
+                  return [edRow];
+                }
+                ;
+                return [];
+              }())])(map31(function(x) {
+                return tbody_([x]);
+              })(imgRows)))));
+              return htmlTable;
             };
           };
         };
+      };
+    };
+    var updateImgRender = function(dictMonadAff) {
+      var liftEffect7 = liftEffect(monadEffectHalogenM(dictMonadAff.MonadEffect0()));
+      return bind10(get5)(function(st) {
+        var radio = new Radio(st.isOpTimeEnable, st.opTime, st.isEdTimeEnable, st.edTime);
+        var fps = function() {
+          var v = fromString(st.fps);
+          if (v instanceof Just) {
+            return v.value0;
+          }
+          ;
+          return 1;
+        }();
+        return discard13(liftEffect7(log2("tempDirPath:")))(function() {
+          return discard13(liftEffect7(logShow2(st.tempDirPath)))(function() {
+            return modify_5(function(st1) {
+              var $143 = {};
+              for (var $144 in st1) {
+                if ({}.hasOwnProperty.call(st1, $144)) {
+                  $143[$144] = st1[$144];
+                }
+                ;
+              }
+              ;
+              $143.imgRender = allRows(st1.tempDirPath)(st1.isAlignRight)(fps)(radio)(st1.ap_videoTable);
+              return $143;
+            });
+          });
+        });
+      });
+    };
+    var doRespond3 = function(dictMonadAff) {
+      var updateImgRender1 = updateImgRender(dictMonadAff);
+      return function(e_respond) {
+        var getRr = function(v) {
+          if (v.result instanceof Just && v.result.value0 instanceof APIMakeCuts) {
+            return new Right(v.result.value0.value0);
+          }
+          ;
+          if (v.result instanceof Just) {
+            return new Left("result type error");
+          }
+          ;
+          if (v.result instanceof Nothing) {
+            return new Left("can't get result.result");
+          }
+          ;
+          throw new Error("Failed pattern match at Widget.CutVideo (line 451, column 36 - line 454, column 46): " + [v.result.constructor.name]);
+        };
+        return bind17(except4(lmap6(function(err) {
+          return "internet error: " + printError(err);
+        })(e_respond)))(function(respond) {
+          return bind17(except4(lmap6(function(e) {
+            return "JSON decode error: " + show13(e);
+          })(decodeJson10(respond.body))))(function(apiResp) {
+            return bind17(except4(getRr(apiResp)))(function(rr) {
+              if (apiResp.success) {
+                return discard24(lift5(modify_5(function(st) {
+                  var $155 = {};
+                  for (var $156 in st) {
+                    if ({}.hasOwnProperty.call(st, $156)) {
+                      $155[$156] = st[$156];
+                    }
+                    ;
+                  }
+                  ;
+                  $155.message = "\u5207\u7247\u5730\u5740\u4F4D\u65BC\uFF1A" + rr.tempDirPath;
+                  $155.tempDirPath = rr.tempDirPath;
+                  $155.requestID = rr.requestID;
+                  $155.showAPslot = true;
+                  return $155;
+                })))(function() {
+                  return lift5(updateImgRender1);
+                });
+              }
+              ;
+              return throwError5("message: " + apiResp.message);
+            });
+          });
+        });
+      };
+    };
+    var handleAction3 = function(dictMonadAff) {
+      var liftEffect7 = liftEffect(monadEffectHalogenM(dictMonadAff.MonadEffect0()));
+      var liftAff2 = liftAff(monadAffHalogenM(dictMonadAff));
+      var doRespond1 = doRespond3(dictMonadAff);
+      var updateImgRender1 = updateImgRender(dictMonadAff);
+      return function(action2) {
+        if (action2 instanceof Initialize4) {
+          return pure18(unit);
+        }
+        ;
+        if (action2 instanceof InputChanged_fps) {
+          return modify_5(function(st) {
+            var $164 = {};
+            for (var $165 in st) {
+              if ({}.hasOwnProperty.call(st, $165)) {
+                $164[$165] = st[$165];
+              }
+              ;
+            }
+            ;
+            $164.fps = action2.value0;
+            return $164;
+          });
+        }
+        ;
+        if (action2 instanceof InputChanged_scale) {
+          return modify_5(function(st) {
+            var $168 = {};
+            for (var $169 in st) {
+              if ({}.hasOwnProperty.call(st, $169)) {
+                $168[$169] = st[$169];
+              }
+              ;
+            }
+            ;
+            $168.scale = action2.value0;
+            return $168;
+          });
+        }
+        ;
+        if (action2 instanceof ClickFileButton) {
+          return discard13(liftEffect7(log2("Button clicked!")))(function() {
+            return bind10(liftEffect7(openFile))(function(promise) {
+              return bind10(liftAff2(toAff(promise)))(function(result) {
+                if (result.canceled) {
+                  return liftEffect7(log2("User canceled"));
+                }
+                ;
+                return discard13(liftEffect7(log2("Selected files: " + show22(result.filePaths))))(function() {
+                  return modify_5(function(st) {
+                    var $173 = {};
+                    for (var $174 in st) {
+                      if ({}.hasOwnProperty.call(st, $174)) {
+                        $173[$174] = st[$174];
+                      }
+                      ;
+                    }
+                    ;
+                    $173.filePaths = result.filePaths;
+                    $173.message = "file1: " + fromMaybe("")(index2(result.filePaths)(0));
+                    return $173;
+                  });
+                });
+              });
+            });
+          });
+        }
+        ;
+        if (action2 instanceof ClickButton2) {
+          return bind10(get5)(function(old_st) {
+            var $176 = eq22(old_st.filePaths)([]);
+            if ($176) {
+              return modify_5(function(st) {
+                var $177 = {};
+                for (var $178 in st) {
+                  if ({}.hasOwnProperty.call(st, $178)) {
+                    $177[$178] = st[$178];
+                  }
+                  ;
+                }
+                ;
+                $177.message = "\u8ACB\u5148\u9078\u53D6\u6A94\u6848";
+                return $177;
+              });
+            }
+            ;
+            var v = checkInput(old_st.fps)(old_st.scale);
+            return discard13(modify_5(function(st) {
+              var $181 = {};
+              for (var $182 in st) {
+                if ({}.hasOwnProperty.call(st, $182)) {
+                  $181[$182] = st[$182];
+                }
+                ;
+              }
+              ;
+              $181.askProgressMsg = "\u767C\u9001\u8ACB\u6C42...";
+              return $181;
+            }))(function() {
+              return bind10(liftAff2(request3({
+                username: defaultRequest.username,
+                password: defaultRequest.password,
+                withCredentials: defaultRequest.withCredentials,
+                timeout: defaultRequest.timeout,
+                url: "http://127.0.0.1:666/api/cut/makeCuts/?" + ("fps=" + (show6(v.value1.value0) + ("&scale=" + show6(v.value1.value1)))),
+                method: new Left(POST2.value),
+                responseFormat: json2,
+                headers: [new RequestHeader("Accept", "application/json"), new RequestHeader("Content-Type", "application/json; charset=utf-8")],
+                content: toJSONBody2(old_st.filePaths)
+              })))(function(m_respond) {
+                return bind10(runExceptT(doRespond1(m_respond)))(function(exceptT) {
+                  return discard13(function() {
+                    if (exceptT instanceof Right) {
+                      return discard13(modify_5(function(st) {
+                        var $185 = {};
+                        for (var $186 in st) {
+                          if ({}.hasOwnProperty.call(st, $186)) {
+                            $185[$186] = st[$186];
+                          }
+                          ;
+                        }
+                        ;
+                        $185.askProgressMsg = "\u8655\u7406\u4E2D...";
+                        return $185;
+                      }))(function() {
+                        return pure18(unit);
+                      });
+                    }
+                    ;
+                    if (exceptT instanceof Left) {
+                      return modify_5(function(st) {
+                        var $189 = {};
+                        for (var $190 in st) {
+                          if ({}.hasOwnProperty.call(st, $190)) {
+                            $189[$190] = st[$190];
+                          }
+                          ;
+                        }
+                        ;
+                        $189.message = exceptT.value0;
+                        return $189;
+                      });
+                    }
+                    ;
+                    throw new Error("Failed pattern match at Widget.CutVideo (line 371, column 7 - line 376, column 51): " + [exceptT.constructor.name]);
+                  }())(function() {
+                    return pure18(unit);
+                  });
+                });
+              });
+            });
+          });
+        }
+        ;
+        if (action2 instanceof ClickButton_AlignRight) {
+          return bind10(get5)(function(st) {
+            return discard13(modify_5(function(st1) {
+              var $197 = {};
+              for (var $198 in st1) {
+                if ({}.hasOwnProperty.call(st1, $198)) {
+                  $197[$198] = st1[$198];
+                }
+                ;
+              }
+              ;
+              $197.isAlignRight = !st1.isAlignRight;
+              return $197;
+            }))(function() {
+              return updateImgRender1;
+            });
+          });
+        }
+        ;
+        if (action2 instanceof ClickTime) {
+          return bind10(get5)(function(st) {
+            if (action2.value0 === "op") {
+              return modify_5(function(st1) {
+                var $201 = {};
+                for (var $202 in st1) {
+                  if ({}.hasOwnProperty.call(st1, $202)) {
+                    $201[$202] = st1[$202];
+                  }
+                  ;
+                }
+                ;
+                $201.opTime = action2.value1;
+                return $201;
+              });
+            }
+            ;
+            if (action2.value0 === "ed") {
+              return modify_5(function(st1) {
+                var $204 = {};
+                for (var $205 in st1) {
+                  if ({}.hasOwnProperty.call(st1, $205)) {
+                    $204[$205] = st1[$205];
+                  }
+                  ;
+                }
+                ;
+                $204.edTime = action2.value1;
+                return $204;
+              });
+            }
+            ;
+            return pure18(unit);
+          });
+        }
+        ;
+        if (action2 instanceof ClickButton_checkbox_op) {
+          return bind10(get5)(function(st) {
+            return discard13(modify_5(function(st1) {
+              var $209 = {};
+              for (var $210 in st1) {
+                if ({}.hasOwnProperty.call(st1, $210)) {
+                  $209[$210] = st1[$210];
+                }
+                ;
+              }
+              ;
+              $209.isOpTimeEnable = !st1.isOpTimeEnable;
+              return $209;
+            }))(function() {
+              return updateImgRender1;
+            });
+          });
+        }
+        ;
+        if (action2 instanceof ClickButton_checkbox_ed) {
+          return bind10(get5)(function(st) {
+            return discard13(modify_5(function(st1) {
+              var $212 = {};
+              for (var $213 in st1) {
+                if ({}.hasOwnProperty.call(st1, $213)) {
+                  $212[$213] = st1[$213];
+                }
+                ;
+              }
+              ;
+              $212.isEdTimeEnable = !st1.isEdTimeEnable;
+              return $212;
+            }))(function() {
+              return updateImgRender1;
+            });
+          });
+        }
+        ;
+        if (action2 instanceof AskProgress) {
+          if (action2.value0 instanceof Msg) {
+            return discard13(modify_5(function(st) {
+              var $216 = {};
+              for (var $217 in st) {
+                if ({}.hasOwnProperty.call(st, $217)) {
+                  $216[$217] = st[$217];
+                }
+                ;
+              }
+              ;
+              $216.askProgressMsg = action2.value0.value0;
+              return $216;
+            }))(function() {
+              return updateImgRender1;
+            });
+          }
+          ;
+          if (action2.value0 instanceof VideoTable) {
+            return discard13(modify_5(function(st) {
+              var $220 = {};
+              for (var $221 in st) {
+                if ({}.hasOwnProperty.call(st, $221)) {
+                  $220[$221] = st[$221];
+                }
+                ;
+              }
+              ;
+              $220.ap_videoTable = action2.value0.value0;
+              return $220;
+            }))(function() {
+              return updateImgRender1;
+            });
+          }
+          ;
+          if (action2.value0 instanceof Done3) {
+            return discard13(modify_5(function(st) {
+              var $224 = {};
+              for (var $225 in st) {
+                if ({}.hasOwnProperty.call(st, $225)) {
+                  $224[$225] = st[$225];
+                }
+                ;
+              }
+              ;
+              $224.askProgressMsg = "\u5207\u7247\u5B8C\u6210";
+              $224.showAPslot = true;
+              $224.showCCCslot = true;
+              return $224;
+            }))(function() {
+              return updateImgRender1;
+            });
+          }
+          ;
+          throw new Error("Failed pattern match at Widget.CutVideo (line 397, column 5 - line 411, column 24): " + [action2.value0.constructor.name]);
+        }
+        ;
+        if (action2 instanceof CutCutCut) {
+          if (action2.value0.value0 instanceof Ready) {
+            return modify_5(function(st) {
+              var $229 = {};
+              for (var $230 in st) {
+                if ({}.hasOwnProperty.call(st, $230)) {
+                  $229[$230] = st[$230];
+                }
+                ;
+              }
+              ;
+              $229.cutcutcutMsg = "\u5DF2\u555F\u52D5";
+              return $229;
+            });
+          }
+          ;
+          if (action2.value0.value0 instanceof Handling) {
+            return modify_5(function(st) {
+              var $233 = {};
+              for (var $234 in st) {
+                if ({}.hasOwnProperty.call(st, $234)) {
+                  $233[$234] = st[$234];
+                }
+                ;
+              }
+              ;
+              $233.cutcutcutMsg = "\u526A\u8F2F\u4E2D...";
+              return $233;
+            });
+          }
+          ;
+          if (action2.value0.value0 instanceof Done4) {
+            return modify_5(function(st) {
+              var $237 = {};
+              for (var $238 in st) {
+                if ({}.hasOwnProperty.call(st, $238)) {
+                  $237[$238] = st[$238];
+                }
+                ;
+              }
+              ;
+              $237.cutcutcutMsg = "\u526A\u8F2F\u5B8C\u6210";
+              return $237;
+            });
+          }
+          ;
+          if (action2.value0.value0 instanceof Done_Error) {
+            return modify_5(function(st) {
+              var $241 = {};
+              for (var $242 in st) {
+                if ({}.hasOwnProperty.call(st, $242)) {
+                  $241[$242] = st[$242];
+                }
+                ;
+              }
+              ;
+              $241.cutcutcutMsg = "\u526A\u8F2F\u5B8C\u6210 \u51FA\u73FE\u932F\u8AA4";
+              return $241;
+            });
+          }
+          ;
+          throw new Error("Failed pattern match at Widget.CutVideo (line 413, column 5 - line 417, column 88): " + [action2.value0.constructor.name]);
+        }
+        ;
+        throw new Error("Failed pattern match at Widget.CutVideo (line 329, column 23 - line 417, column 88): " + [action2.constructor.name]);
       };
     };
     var _wcccSlot = /* @__PURE__ */ function() {
@@ -10785,462 +11228,6 @@
           ;
           return text5("");
         }()])]);
-      };
-    };
-    var updateImgRender = function(dictMonadAff) {
-      var liftEffect12 = liftEffect(monadEffectHalogenM(dictMonadAff.MonadEffect0()));
-      return bind17(get5)(function(st) {
-        var fps = function() {
-          var v = fromString(st.fps);
-          if (v instanceof Just) {
-            return v.value0;
-          }
-          ;
-          return 1;
-        }();
-        var radio = new Radio(st.isOpTimeEnable, st.opTime, st.isEdTimeEnable, st.edTime);
-        return bind17(request4(_wapSlot)(unit)(GetDone.create))(function(m_done) {
-          return discard24(liftEffect12(log2("m_done" + show13(m_done))))(function() {
-            if (m_done instanceof Just) {
-              return bind17(liftEffect12(allRows(st.tempDirPath)(st.isAlignRight)(fps)(radio)(m_done.value0)))(function(imgRender) {
-                return modify_5(function(st1) {
-                  var $152 = {};
-                  for (var $153 in st1) {
-                    if ({}.hasOwnProperty.call(st1, $153)) {
-                      $152[$153] = st1[$153];
-                    }
-                    ;
-                  }
-                  ;
-                  $152.imgRender = imgRender;
-                  return $152;
-                });
-              });
-            }
-            ;
-            if (m_done instanceof Nothing) {
-              return modify_5(function(st1) {
-                var $156 = {};
-                for (var $157 in st1) {
-                  if ({}.hasOwnProperty.call(st1, $157)) {
-                    $156[$157] = st1[$157];
-                  }
-                  ;
-                }
-                ;
-                $156.askProgressMsg = "UnexpectedError in updateImgRender";
-                return $156;
-              });
-            }
-            ;
-            throw new Error("Failed pattern match at Widget.CutVideo (line 455, column 3 - line 460, column 84): " + [m_done.constructor.name]);
-          });
-        });
-      });
-    };
-    var doRespond3 = function(dictMonadAff) {
-      var updateImgRender1 = updateImgRender(dictMonadAff);
-      return function(e_respond) {
-        var getRr = function(v) {
-          if (v.result instanceof Just && v.result.value0 instanceof APIMakeCuts) {
-            return new Right(v.result.value0.value0);
-          }
-          ;
-          if (v.result instanceof Just) {
-            return new Left("result type error");
-          }
-          ;
-          if (v.result instanceof Nothing) {
-            return new Left("can't get result.result");
-          }
-          ;
-          throw new Error("Failed pattern match at Widget.CutVideo (line 439, column 36 - line 442, column 46): " + [v.result.constructor.name]);
-        };
-        return bind22(except4(lmap6(function(err) {
-          return "internet error: " + printError(err);
-        })(e_respond)))(function(respond) {
-          return bind22(except4(lmap6(function(e) {
-            return "JSON decode error: " + show22(e);
-          })(decodeJson10(respond.body))))(function(apiResp) {
-            return bind22(except4(getRr(apiResp)))(function(rr) {
-              if (apiResp.success) {
-                return discard32(lift5(modify_5(function(st) {
-                  var $168 = {};
-                  for (var $169 in st) {
-                    if ({}.hasOwnProperty.call(st, $169)) {
-                      $168[$169] = st[$169];
-                    }
-                    ;
-                  }
-                  ;
-                  $168.message = "\u5207\u7247\u5730\u5740\u4F4D\u65BC\uFF1A" + rr.tempDirPath;
-                  $168.tempDirPath = rr.tempDirPath;
-                  $168.requestID = rr.requestID;
-                  $168.showAPslot = true;
-                  return $168;
-                })))(function() {
-                  return lift5(updateImgRender1);
-                });
-              }
-              ;
-              return throwError5("message: " + apiResp.message);
-            });
-          });
-        });
-      };
-    };
-    var handleAction3 = function(dictMonadAff) {
-      var liftEffect12 = liftEffect(monadEffectHalogenM(dictMonadAff.MonadEffect0()));
-      var liftAff2 = liftAff(monadAffHalogenM(dictMonadAff));
-      var doRespond1 = doRespond3(dictMonadAff);
-      var updateImgRender1 = updateImgRender(dictMonadAff);
-      return function(action2) {
-        if (action2 instanceof Initialize4) {
-          return pure18(unit);
-        }
-        ;
-        if (action2 instanceof InputChanged_fps) {
-          return modify_5(function(st) {
-            var $177 = {};
-            for (var $178 in st) {
-              if ({}.hasOwnProperty.call(st, $178)) {
-                $177[$178] = st[$178];
-              }
-              ;
-            }
-            ;
-            $177.fps = action2.value0;
-            return $177;
-          });
-        }
-        ;
-        if (action2 instanceof InputChanged_scale) {
-          return modify_5(function(st) {
-            var $181 = {};
-            for (var $182 in st) {
-              if ({}.hasOwnProperty.call(st, $182)) {
-                $181[$182] = st[$182];
-              }
-              ;
-            }
-            ;
-            $181.scale = action2.value0;
-            return $181;
-          });
-        }
-        ;
-        if (action2 instanceof ClickFileButton) {
-          return discard24(liftEffect12(log2("Button clicked!")))(function() {
-            return bind17(liftEffect12(openFile))(function(promise) {
-              return bind17(liftAff2(toAff(promise)))(function(result) {
-                if (result.canceled) {
-                  return liftEffect12(log2("User canceled"));
-                }
-                ;
-                return discard24(liftEffect12(log2("Selected files: " + show32(result.filePaths))))(function() {
-                  return modify_5(function(st) {
-                    var $186 = {};
-                    for (var $187 in st) {
-                      if ({}.hasOwnProperty.call(st, $187)) {
-                        $186[$187] = st[$187];
-                      }
-                      ;
-                    }
-                    ;
-                    $186.filePaths = result.filePaths;
-                    $186.message = "file1: " + fromMaybe("")(index2(result.filePaths)(0));
-                    return $186;
-                  });
-                });
-              });
-            });
-          });
-        }
-        ;
-        if (action2 instanceof ClickButton2) {
-          return bind17(get5)(function(old_st) {
-            var $189 = eq12(old_st.filePaths)([]);
-            if ($189) {
-              return modify_5(function(st) {
-                var $190 = {};
-                for (var $191 in st) {
-                  if ({}.hasOwnProperty.call(st, $191)) {
-                    $190[$191] = st[$191];
-                  }
-                  ;
-                }
-                ;
-                $190.message = "\u8ACB\u5148\u9078\u53D6\u6A94\u6848";
-                return $190;
-              });
-            }
-            ;
-            var v = checkInput(old_st.fps)(old_st.scale);
-            return discard24(modify_5(function(st) {
-              var $194 = {};
-              for (var $195 in st) {
-                if ({}.hasOwnProperty.call(st, $195)) {
-                  $194[$195] = st[$195];
-                }
-                ;
-              }
-              ;
-              $194.askProgressMsg = "\u767C\u9001\u8ACB\u6C42...";
-              return $194;
-            }))(function() {
-              return bind17(liftAff2(request3({
-                username: defaultRequest.username,
-                password: defaultRequest.password,
-                withCredentials: defaultRequest.withCredentials,
-                timeout: defaultRequest.timeout,
-                url: "http://127.0.0.1:666/api/cut/makeCuts/?" + ("fps=" + (show6(v.value1.value0) + ("&scale=" + show6(v.value1.value1)))),
-                method: new Left(POST2.value),
-                responseFormat: json2,
-                headers: [new RequestHeader("Accept", "application/json"), new RequestHeader("Content-Type", "application/json; charset=utf-8")],
-                content: toJSONBody2(old_st.filePaths)
-              })))(function(m_respond) {
-                return bind17(runExceptT(doRespond1(m_respond)))(function(exceptT) {
-                  return discard24(function() {
-                    if (exceptT instanceof Right) {
-                      return discard24(modify_5(function(st) {
-                        var $198 = {};
-                        for (var $199 in st) {
-                          if ({}.hasOwnProperty.call(st, $199)) {
-                            $198[$199] = st[$199];
-                          }
-                          ;
-                        }
-                        ;
-                        $198.askProgressMsg = "\u8655\u7406\u4E2D...";
-                        return $198;
-                      }))(function() {
-                        return pure18(unit);
-                      });
-                    }
-                    ;
-                    if (exceptT instanceof Left) {
-                      return modify_5(function(st) {
-                        var $202 = {};
-                        for (var $203 in st) {
-                          if ({}.hasOwnProperty.call(st, $203)) {
-                            $202[$203] = st[$203];
-                          }
-                          ;
-                        }
-                        ;
-                        $202.message = exceptT.value0;
-                        return $202;
-                      });
-                    }
-                    ;
-                    throw new Error("Failed pattern match at Widget.CutVideo (line 362, column 7 - line 367, column 51): " + [exceptT.constructor.name]);
-                  }())(function() {
-                    return pure18(unit);
-                  });
-                });
-              });
-            });
-          });
-        }
-        ;
-        if (action2 instanceof ClickButton_AlignRight) {
-          return bind17(get5)(function(st) {
-            return discard24(modify_5(function(st1) {
-              var $210 = {};
-              for (var $211 in st1) {
-                if ({}.hasOwnProperty.call(st1, $211)) {
-                  $210[$211] = st1[$211];
-                }
-                ;
-              }
-              ;
-              $210.isAlignRight = !st1.isAlignRight;
-              return $210;
-            }))(function() {
-              return updateImgRender1;
-            });
-          });
-        }
-        ;
-        if (action2 instanceof ClickTime) {
-          return bind17(get5)(function(st) {
-            if (action2.value0 === "op") {
-              return modify_5(function(st1) {
-                var $214 = {};
-                for (var $215 in st1) {
-                  if ({}.hasOwnProperty.call(st1, $215)) {
-                    $214[$215] = st1[$215];
-                  }
-                  ;
-                }
-                ;
-                $214.opTime = action2.value1;
-                return $214;
-              });
-            }
-            ;
-            if (action2.value0 === "ed") {
-              return modify_5(function(st1) {
-                var $217 = {};
-                for (var $218 in st1) {
-                  if ({}.hasOwnProperty.call(st1, $218)) {
-                    $217[$218] = st1[$218];
-                  }
-                  ;
-                }
-                ;
-                $217.edTime = action2.value1;
-                return $217;
-              });
-            }
-            ;
-            return pure18(unit);
-          });
-        }
-        ;
-        if (action2 instanceof ClickButton_checkbox_op) {
-          return bind17(get5)(function(st) {
-            return discard24(modify_5(function(st1) {
-              var $222 = {};
-              for (var $223 in st1) {
-                if ({}.hasOwnProperty.call(st1, $223)) {
-                  $222[$223] = st1[$223];
-                }
-                ;
-              }
-              ;
-              $222.isOpTimeEnable = !st1.isOpTimeEnable;
-              return $222;
-            }))(function() {
-              return updateImgRender1;
-            });
-          });
-        }
-        ;
-        if (action2 instanceof ClickButton_checkbox_ed) {
-          return bind17(get5)(function(st) {
-            return discard24(modify_5(function(st1) {
-              var $225 = {};
-              for (var $226 in st1) {
-                if ({}.hasOwnProperty.call(st1, $226)) {
-                  $225[$226] = st1[$226];
-                }
-                ;
-              }
-              ;
-              $225.isEdTimeEnable = !st1.isEdTimeEnable;
-              return $225;
-            }))(function() {
-              return updateImgRender1;
-            });
-          });
-        }
-        ;
-        if (action2 instanceof AskProgress) {
-          if (action2.value0 instanceof Msg) {
-            return discard24(modify_5(function(st) {
-              var $229 = {};
-              for (var $230 in st) {
-                if ({}.hasOwnProperty.call(st, $230)) {
-                  $229[$230] = st[$230];
-                }
-                ;
-              }
-              ;
-              $229.askProgressMsg = action2.value0.value0;
-              return $229;
-            }))(function() {
-              return updateImgRender1;
-            });
-          }
-          ;
-          if (action2.value0 instanceof Done3) {
-            return discard24(modify_5(function(st) {
-              var $233 = {};
-              for (var $234 in st) {
-                if ({}.hasOwnProperty.call(st, $234)) {
-                  $233[$234] = st[$234];
-                }
-                ;
-              }
-              ;
-              $233.askProgressMsg = "\u5207\u7247\u5B8C\u6210";
-              $233.showAPslot = true;
-              $233.showCCCslot = true;
-              return $233;
-            }))(function() {
-              return updateImgRender1;
-            });
-          }
-          ;
-          throw new Error("Failed pattern match at Widget.CutVideo (line 388, column 5 - line 399, column 24): " + [action2.value0.constructor.name]);
-        }
-        ;
-        if (action2 instanceof CutCutCut) {
-          if (action2.value0.value0 instanceof Ready) {
-            return modify_5(function(st) {
-              var $238 = {};
-              for (var $239 in st) {
-                if ({}.hasOwnProperty.call(st, $239)) {
-                  $238[$239] = st[$239];
-                }
-                ;
-              }
-              ;
-              $238.cutcutcutMsg = "\u5DF2\u555F\u52D5";
-              return $238;
-            });
-          }
-          ;
-          if (action2.value0.value0 instanceof Handling) {
-            return modify_5(function(st) {
-              var $242 = {};
-              for (var $243 in st) {
-                if ({}.hasOwnProperty.call(st, $243)) {
-                  $242[$243] = st[$243];
-                }
-                ;
-              }
-              ;
-              $242.cutcutcutMsg = "\u526A\u8F2F\u4E2D...";
-              return $242;
-            });
-          }
-          ;
-          if (action2.value0.value0 instanceof Done4) {
-            return modify_5(function(st) {
-              var $246 = {};
-              for (var $247 in st) {
-                if ({}.hasOwnProperty.call(st, $247)) {
-                  $246[$247] = st[$247];
-                }
-                ;
-              }
-              ;
-              $246.cutcutcutMsg = "\u526A\u8F2F\u5B8C\u6210";
-              return $246;
-            });
-          }
-          ;
-          if (action2.value0.value0 instanceof Done_Error) {
-            return modify_5(function(st) {
-              var $250 = {};
-              for (var $251 in st) {
-                if ({}.hasOwnProperty.call(st, $251)) {
-                  $250[$251] = st[$251];
-                }
-                ;
-              }
-              ;
-              $250.cutcutcutMsg = "\u526A\u8F2F\u5B8C\u6210 \u51FA\u73FE\u932F\u8AA4";
-              return $250;
-            });
-          }
-          ;
-          throw new Error("Failed pattern match at Widget.CutVideo (line 401, column 5 - line 405, column 88): " + [action2.value0.constructor.name]);
-        }
-        ;
-        throw new Error("Failed pattern match at Widget.CutVideo (line 320, column 23 - line 405, column 88): " + [action2.constructor.name]);
       };
     };
     var component3 = function(dictMonadAff) {

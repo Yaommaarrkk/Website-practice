@@ -28,8 +28,9 @@ executable myServer
     Http
     Cut.MakeCuts
     Cut.MakeCuts_type
-    MyLibrary.State
+    MyLibrary.Environment
     MyLibrary.Time
+    MyLibrary.Threads
   build-depends: 
     base >=4.7 && <5,
     bytestring,
@@ -47,7 +48,8 @@ executable myServer
     regex-tdfa,
     mtl,
     stm,
-    async
+    async,
+    Win32
 
   ghc-options:
     -Wall
