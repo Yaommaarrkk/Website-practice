@@ -30,7 +30,7 @@ Electron
  - IPC / FFI: JavaScript bridge
 
 ## 開發者流程
-#後端
+# 後端
 chcp 65001 // 確保中文編碼
 cd 進入backEnd\myServer
 stack run -- +RTS -N4 // 編譯並開啟多核心伺服器
