@@ -21,6 +21,7 @@ import Affjax.RequestHeader as AXRH
 import Affjax.RequestBody as AXRB
 import Effect.Console (log)
 import Data.HTTP.Method (Method(..))
+import MyLibrary.General (serverUrl)
 import MyLibrary.Http.JSON (ApiResponse(..), ResultResponse(..), WCV_CCC_Result(..))
 import Data.Argonaut.Decode (JsonDecodeError, decodeJson)
 import Data.Argonaut.Core as JSON
@@ -92,7 +93,7 @@ component =  -- (初始狀態, 怎麼渲染畫面, 處理互動, 外部事件)
         H.mkEval
           H.defaultEval
             { handleAction = handleAction
-            -- , receive = Just <<< Receive -- 與父元件同步更新
+            , receive = Just <<< Receive
             } -- handleAction: 事件的主處理器
     }
   where
@@ -142,10 +143,11 @@ handleAction action = case action of
       arg_op = if old_st.isOpTimeEnable then old_st.opTime else ""
 
       arg_ed = if old_st.isEdTimeEnable then old_st.edTime else ""
+    H.liftEffect $ log $ "cutCutCut op=" <> arg_op <> " ed=" <> arg_ed
     m_respond <-
       H.liftAff $ AX.request
         $ AX.defaultRequest
-            { url = "http://127.0.0.1:666/api/cut/cutCutCut/?" <> "op=" <> arg_op <> "&ed=" <> arg_ed
+            { url = serverUrl <> "/api/cut/cutCutCut/?" <> "op=" <> arg_op <> "&ed=" <> arg_ed
             , method = Left POST
             , responseFormat = AXRF.json -- 回傳內容用json格式解析
             , headers =

@@ -1,5 +1,5 @@
 (() => {
-  // frontend/output/Main/index.js
+  // frontEnd/output/Main/index.js
   (() => {
     var arrayBind = typeof Array.prototype.flatMap === "function" ? function(arr) {
       return function(f) {
@@ -9553,6 +9553,7 @@
         });
       }
     };
+    var serverUrl = "http://127.0.0.1:7666";
     var getField2 = function(dictDecodeJson) {
       return getField(decodeJson(dictDecodeJson));
     };
@@ -9948,16 +9949,25 @@
     }();
     var updateState = function(input3) {
       return modify_3(function(st) {
-        var $42 = {};
-        for (var $43 in st) {
-          if ({}.hasOwnProperty.call(st, $43)) {
-            $42[$43] = st[$43];
+        var $44 = {};
+        for (var $45 in st) {
+          if ({}.hasOwnProperty.call(st, $45)) {
+            $44[$45] = st[$45];
           }
           ;
         }
         ;
-        $42.requestID = input3.requestID;
-        return $42;
+        $44.requestID = input3.requestID;
+        $44.videoNames = input3.videoNames;
+        $44.videoTable = function() {
+          var $43 = input3.requestID !== st.requestID;
+          if ($43) {
+            return mkJobMap(input3.videoNames);
+          }
+          ;
+          return st.videoTable;
+        }();
+        return $44;
       });
     };
     var render = function(state3) {
@@ -9978,7 +9988,7 @@
             return new Left("can't get result.result");
           }
           ;
-          throw new Error("Failed pattern match at Widget.CutVideo.AskProgress (line 179, column 36 - line 182, column 46): " + [v.result.constructor.name]);
+          throw new Error("Failed pattern match at Widget.CutVideo.AskProgress (line 188, column 36 - line 191, column 46): " + [v.result.constructor.name]);
         };
         return bind8(except2(lmap4(function(err) {
           return "internet error: " + printError(err);
@@ -9989,21 +9999,21 @@
             return bind8(except2(getRr(apiResp)))(function(rr) {
               if (apiResp.success) {
                 return discard12(lift4(modify_3(function(st) {
-                  var $55 = {};
-                  for (var $56 in st) {
-                    if ({}.hasOwnProperty.call(st, $56)) {
-                      $55[$56] = st[$56];
+                  var $57 = {};
+                  for (var $58 in st) {
+                    if ({}.hasOwnProperty.call(st, $58)) {
+                      $57[$58] = st[$58];
                     }
                     ;
                   }
                   ;
-                  $55.isComplete = rr.isComplete;
-                  $55.videoTable = foldl3(function(m) {
+                  $57.isComplete = rr.isComplete;
+                  $57.videoTable = foldl3(function(m) {
                     return function(job) {
                       return insert8(job.videoName)(job)(m);
                     };
                   })(st.videoTable)(rr.updateJobs);
-                  return $55;
+                  return $57;
                 })))(function() {
                   return pure15(apiResp.message);
                 });
@@ -10025,12 +10035,12 @@
             return bind15(get3)(function(st) {
               return when4(!st.isComplete)(discard23(handleAction(dictMonadAff)(SendRequest.value))(function() {
                 return discard23(liftAff2(delay(1e3)))(function() {
-                  return $lazy_go(115);
+                  return $lazy_go(124);
                 });
               }));
             });
           });
-          var go2 = $lazy_go(110);
+          var go2 = $lazy_go(119);
           return discard23(pure16(unit))(function() {
             return discard23(raise(new Msg("\u4E0A\u50B3\u4E2D...")))(function() {
               return discard23(liftEffect7(log2("AskProgress\u5143\u4EF6\u5DF2\u521D\u59CB\u5316")))(function() {
@@ -10052,7 +10062,7 @@
               password: defaultRequest.password,
               withCredentials: defaultRequest.withCredentials,
               timeout: defaultRequest.timeout,
-              url: "http://127.0.0.1:666/api/cut/askProgress/?" + ("requestID=" + old_st.requestID),
+              url: serverUrl + ("/api/cut/askProgress/?" + ("requestID=" + old_st.requestID)),
               method: new Left(GET2.value),
               responseFormat: json2,
               headers: [new RequestHeader("Accept", "application/json")]
@@ -10067,7 +10077,7 @@
                     return raise(new Msg(exceptT.value0));
                   }
                   ;
-                  throw new Error("Failed pattern match at Widget.CutVideo.AskProgress (line 137, column 5 - line 141, column 29): " + [exceptT.constructor.name]);
+                  throw new Error("Failed pattern match at Widget.CutVideo.AskProgress (line 146, column 5 - line 150, column 29): " + [exceptT.constructor.name]);
                 }())(function() {
                   return bind15(get3)(function(st) {
                     return discard23(raise(new VideoTable(st.videoTable)))(function() {
@@ -10080,13 +10090,14 @@
           });
         }
         ;
-        throw new Error("Failed pattern match at Widget.CutVideo.AskProgress (line 101, column 23 - line 145, column 19): " + [action2.constructor.name]);
+        throw new Error("Failed pattern match at Widget.CutVideo.AskProgress (line 110, column 23 - line 154, column 19): " + [action2.constructor.name]);
       };
     };
     var component = function(dictMonadAff) {
       var initialState3 = function(input3) {
         return {
           requestID: input3.requestID,
+          videoNames: input3.videoNames,
           videoTable: mkJobMap(input3.videoNames),
           isComplete: false
         };
@@ -10099,8 +10110,8 @@
           finalize: defaultEval.finalize,
           initialize: new Just(Initialize2.value),
           handleAction: handleAction(dictMonadAff),
-          receive: function($68) {
-            return Just.create(Receive2.create($68));
+          receive: function($70) {
+            return Just.create(Receive2.create($70));
           }
         })
       });
@@ -10182,20 +10193,20 @@
     }();
     var updateState2 = function(input3) {
       return modify_4(function(st) {
-        var $36 = {};
-        for (var $37 in st) {
-          if ({}.hasOwnProperty.call(st, $37)) {
-            $36[$37] = st[$37];
+        var $37 = {};
+        for (var $38 in st) {
+          if ({}.hasOwnProperty.call(st, $38)) {
+            $37[$38] = st[$38];
           }
           ;
         }
         ;
-        $36.filePaths = input3.filePaths;
-        $36.isOpTimeEnable = input3.isOpTimeEnable;
-        $36.opTime = input3.opTime;
-        $36.isEdTimeEnable = input3.isEdTimeEnable;
-        $36.edTime = input3.edTime;
-        return $36;
+        $37.filePaths = input3.filePaths;
+        $37.isOpTimeEnable = input3.isOpTimeEnable;
+        $37.opTime = input3.opTime;
+        $37.isEdTimeEnable = input3.isEdTimeEnable;
+        $37.edTime = input3.edTime;
+        return $37;
       });
     };
     var toJSONBody = function(arr) {
@@ -10227,7 +10238,7 @@
             return new Left("can't get result.result");
           }
           ;
-          throw new Error("Failed pattern match at Widget.CutVideo.CutCutCut (line 196, column 36 - line 199, column 46): " + [v.result.constructor.name]);
+          throw new Error("Failed pattern match at Widget.CutVideo.CutCutCut (line 198, column 36 - line 201, column 46): " + [v.result.constructor.name]);
         };
         return bind9(except3(lmap5(function(err) {
           return "internet error: " + printError(err);
@@ -10238,16 +10249,16 @@
             return bind9(except3(getRr(apiResp)))(function(rr) {
               if (apiResp.success) {
                 return modify_1(function(st) {
-                  var $49 = {};
-                  for (var $50 in st) {
-                    if ({}.hasOwnProperty.call(st, $50)) {
-                      $49[$50] = st[$50];
+                  var $50 = {};
+                  for (var $51 in st) {
+                    if ({}.hasOwnProperty.call(st, $51)) {
+                      $50[$51] = st[$51];
                     }
                     ;
                   }
                   ;
-                  $49.message = apiResp.message;
-                  return $49;
+                  $50.message = apiResp.message;
+                  return $50;
                 });
               }
               ;
@@ -10290,55 +10301,57 @@
                   ;
                   return "";
                 }();
-                return bind16(liftAff2(request3({
-                  username: defaultRequest.username,
-                  password: defaultRequest.password,
-                  withCredentials: defaultRequest.withCredentials,
-                  timeout: defaultRequest.timeout,
-                  url: "http://127.0.0.1:666/api/cut/cutCutCut/?" + ("op=" + (arg_op + ("&ed=" + arg_ed))),
-                  method: new Left(POST2.value),
-                  responseFormat: json2,
-                  headers: [new RequestHeader("Accept", "application/json"), new RequestHeader("Content-Type", "application/json; charset=utf-8")],
-                  content: toJSONBody(old_st.filePaths)
-                })))(function(m_respond) {
-                  return bind16(runExceptT(doRespond1(m_respond)))(function(exceptT) {
-                    return discard6(function() {
-                      if (exceptT instanceof Right) {
-                        return discard6(raise(new Submit(Done4.value)))(function() {
-                          return pure17(unit);
-                        });
-                      }
-                      ;
-                      if (exceptT instanceof Left) {
-                        return discard6(modify_4(function(st) {
-                          var $62 = {};
-                          for (var $63 in st) {
-                            if ({}.hasOwnProperty.call(st, $63)) {
-                              $62[$63] = st[$63];
+                return discard6(liftEffect7(log2("cutCutCut op=" + (arg_op + (" ed=" + arg_ed)))))(function() {
+                  return bind16(liftAff2(request3({
+                    username: defaultRequest.username,
+                    password: defaultRequest.password,
+                    withCredentials: defaultRequest.withCredentials,
+                    timeout: defaultRequest.timeout,
+                    url: serverUrl + ("/api/cut/cutCutCut/?" + ("op=" + (arg_op + ("&ed=" + arg_ed)))),
+                    method: new Left(POST2.value),
+                    responseFormat: json2,
+                    headers: [new RequestHeader("Accept", "application/json"), new RequestHeader("Content-Type", "application/json; charset=utf-8")],
+                    content: toJSONBody(old_st.filePaths)
+                  })))(function(m_respond) {
+                    return bind16(runExceptT(doRespond1(m_respond)))(function(exceptT) {
+                      return discard6(function() {
+                        if (exceptT instanceof Right) {
+                          return discard6(raise(new Submit(Done4.value)))(function() {
+                            return pure17(unit);
+                          });
+                        }
+                        ;
+                        if (exceptT instanceof Left) {
+                          return discard6(modify_4(function(st) {
+                            var $63 = {};
+                            for (var $64 in st) {
+                              if ({}.hasOwnProperty.call(st, $64)) {
+                                $63[$64] = st[$64];
+                              }
+                              ;
+                            }
+                            ;
+                            $63.message = exceptT.value0;
+                            return $63;
+                          }))(function() {
+                            return raise(new Submit(Done_Error.value));
+                          });
+                        }
+                        ;
+                        throw new Error("Failed pattern match at Widget.CutVideo.CutCutCut (line 160, column 5 - line 166, column 36): " + [exceptT.constructor.name]);
+                      }())(function() {
+                        return modify_4(function(st) {
+                          var $67 = {};
+                          for (var $68 in st) {
+                            if ({}.hasOwnProperty.call(st, $68)) {
+                              $67[$68] = st[$68];
                             }
                             ;
                           }
                           ;
-                          $62.message = exceptT.value0;
-                          return $62;
-                        }))(function() {
-                          return raise(new Submit(Done_Error.value));
+                          $67.isCutComplete = true;
+                          return $67;
                         });
-                      }
-                      ;
-                      throw new Error("Failed pattern match at Widget.CutVideo.CutCutCut (line 158, column 5 - line 164, column 36): " + [exceptT.constructor.name]);
-                    }())(function() {
-                      return modify_4(function(st) {
-                        var $66 = {};
-                        for (var $67 in st) {
-                          if ({}.hasOwnProperty.call(st, $67)) {
-                            $66[$67] = st[$67];
-                          }
-                          ;
-                        }
-                        ;
-                        $66.isCutComplete = true;
-                        return $66;
                       });
                     });
                   });
@@ -10348,7 +10361,7 @@
           });
         }
         ;
-        throw new Error("Failed pattern match at Widget.CutVideo.CutCutCut (line 127, column 23 - line 168, column 10): " + [action2.constructor.name]);
+        throw new Error("Failed pattern match at Widget.CutVideo.CutCutCut (line 128, column 23 - line 170, column 10): " + [action2.constructor.name]);
       };
     };
     var component2 = function(dictMonadAff) {
@@ -10368,10 +10381,12 @@
         render: render2,
         "eval": mkEval({
           handleQuery: defaultEval.handleQuery,
-          receive: defaultEval.receive,
           initialize: defaultEval.initialize,
           finalize: defaultEval.finalize,
-          handleAction: handleAction2(dictMonadAff)
+          handleAction: handleAction2(dictMonadAff),
+          receive: function($70) {
+            return Just.create(Receive3.create($70));
+          }
         })
       });
     };
@@ -10594,7 +10609,7 @@
                     return show6(n);
                   }
                   ;
-                  throw new Error("Failed pattern match at Widget.CutVideo (line 320, column 5 - line 323, column 27): " + [n.constructor.name]);
+                  throw new Error("Failed pattern match at Widget.CutVideo (line 321, column 5 - line 324, column 27): " + [n.constructor.name]);
                 };
                 var pad2 = function(n) {
                   var $127 = n < 10;
@@ -10650,12 +10665,12 @@
                         return td([style("padding: 2px;")])([]);
                       }
                       ;
-                      throw new Error("Failed pattern match at Widget.CutVideo (line 269, column 5 - line 269, column 69): " + [v1.constructor.name]);
+                      throw new Error("Failed pattern match at Widget.CutVideo (line 270, column 5 - line 270, column 69): " + [v1.constructor.name]);
                     };
-                    var imgTd = map31(function($248) {
+                    var imgTd = map31(function($251) {
                       return function(x) {
                         return makeTd(new Just(x));
-                      }(pathToRender(numToPath($248)));
+                      }(pathToRender(numToPath($251)));
                     })(range2(1)(totalFrames2));
                     var fillerTd = function() {
                       if (isAlignRight) {
@@ -10688,21 +10703,21 @@
                 return eq12(job.state)(Done2.value);
               })(values(videoTable)));
               var totalFrames = map31(function() {
-                var $249 = fromMaybe(0);
-                return function($250) {
-                  return $249(function(v1) {
+                var $252 = fromMaybe(0);
+                return function($253) {
+                  return $252(function(v1) {
                     return v1.totalFrames;
-                  }($250));
+                  }($253));
                 };
               }())(doneJobs);
               var maxFrames = foldl2(max6)(0)(totalFrames);
               var edRow = addRowLabel(radioLabel("\u526A\u7247\u5C3E"))(topControls(maxFrames)("ed"));
               var opRow = addRowLabel(radioLabel("\u526A\u958B\u982D"))(topControls(maxFrames)("op"));
               var timeRow = addRowLabel(radioLabel("\u6B32\u522A\u9664\u6642\u9593"))(getTimeRow(maxFrames));
-              var dirPaths = map31(function($251) {
+              var dirPaths = map31(function($254) {
                 return normalizePath(function(v1) {
                   return v1.outputDir;
-                }($251));
+                }($254));
               })(doneJobs);
               var imgRows = map31(function(v1) {
                 return imgRow(maxFrames)(v1.value0)(v1.value1);
@@ -10731,28 +10746,21 @@
     var updateImgRender = function(dictMonadAff) {
       var liftEffect7 = liftEffect(monadEffectHalogenM(dictMonadAff.MonadEffect0()));
       return bind10(get5)(function(st) {
+        var v = checkInput(st.fps)(st.scale);
         var radio = new Radio(st.isOpTimeEnable, st.opTime, st.isEdTimeEnable, st.edTime);
-        var fps = function() {
-          var v = fromString(st.fps);
-          if (v instanceof Just) {
-            return v.value0;
-          }
-          ;
-          return 1;
-        }();
         return discard13(liftEffect7(log2("tempDirPath:")))(function() {
           return discard13(liftEffect7(logShow2(st.tempDirPath)))(function() {
             return modify_5(function(st1) {
-              var $143 = {};
-              for (var $144 in st1) {
-                if ({}.hasOwnProperty.call(st1, $144)) {
-                  $143[$144] = st1[$144];
+              var $142 = {};
+              for (var $143 in st1) {
+                if ({}.hasOwnProperty.call(st1, $143)) {
+                  $142[$143] = st1[$143];
                 }
                 ;
               }
               ;
-              $143.imgRender = allRows(st1.tempDirPath)(st1.isAlignRight)(fps)(radio)(st1.ap_videoTable);
-              return $143;
+              $142.imgRender = allRows(st1.tempDirPath)(st1.isAlignRight)(v.value1.value0)(radio)(st1.ap_videoTable);
+              return $142;
             });
           });
         });
@@ -10774,7 +10782,7 @@
             return new Left("can't get result.result");
           }
           ;
-          throw new Error("Failed pattern match at Widget.CutVideo (line 451, column 36 - line 454, column 46): " + [v.result.constructor.name]);
+          throw new Error("Failed pattern match at Widget.CutVideo (line 452, column 36 - line 455, column 46): " + [v.result.constructor.name]);
         };
         return bind17(except4(lmap6(function(err) {
           return "internet error: " + printError(err);
@@ -10785,19 +10793,19 @@
             return bind17(except4(getRr(apiResp)))(function(rr) {
               if (apiResp.success) {
                 return discard24(lift5(modify_5(function(st) {
-                  var $155 = {};
-                  for (var $156 in st) {
-                    if ({}.hasOwnProperty.call(st, $156)) {
-                      $155[$156] = st[$156];
+                  var $158 = {};
+                  for (var $159 in st) {
+                    if ({}.hasOwnProperty.call(st, $159)) {
+                      $158[$159] = st[$159];
                     }
                     ;
                   }
                   ;
-                  $155.message = "\u5207\u7247\u5730\u5740\u4F4D\u65BC\uFF1A" + rr.tempDirPath;
-                  $155.tempDirPath = rr.tempDirPath;
-                  $155.requestID = rr.requestID;
-                  $155.showAPslot = true;
-                  return $155;
+                  $158.message = "\u5207\u7247\u5730\u5740\u4F4D\u65BC\uFF1A" + rr.tempDirPath;
+                  $158.tempDirPath = rr.tempDirPath;
+                  $158.requestID = rr.requestID;
+                  $158.showAPslot = true;
+                  return $158;
                 })))(function() {
                   return lift5(updateImgRender1);
                 });
@@ -10821,31 +10829,31 @@
         ;
         if (action2 instanceof InputChanged_fps) {
           return modify_5(function(st) {
-            var $164 = {};
-            for (var $165 in st) {
-              if ({}.hasOwnProperty.call(st, $165)) {
-                $164[$165] = st[$165];
+            var $167 = {};
+            for (var $168 in st) {
+              if ({}.hasOwnProperty.call(st, $168)) {
+                $167[$168] = st[$168];
               }
               ;
             }
             ;
-            $164.fps = action2.value0;
-            return $164;
+            $167.fps = action2.value0;
+            return $167;
           });
         }
         ;
         if (action2 instanceof InputChanged_scale) {
           return modify_5(function(st) {
-            var $168 = {};
-            for (var $169 in st) {
-              if ({}.hasOwnProperty.call(st, $169)) {
-                $168[$169] = st[$169];
+            var $171 = {};
+            for (var $172 in st) {
+              if ({}.hasOwnProperty.call(st, $172)) {
+                $171[$172] = st[$172];
               }
               ;
             }
             ;
-            $168.scale = action2.value0;
-            return $168;
+            $171.scale = action2.value0;
+            return $171;
           });
         }
         ;
@@ -10859,17 +10867,17 @@
                 ;
                 return discard13(liftEffect7(log2("Selected files: " + show22(result.filePaths))))(function() {
                   return modify_5(function(st) {
-                    var $173 = {};
-                    for (var $174 in st) {
-                      if ({}.hasOwnProperty.call(st, $174)) {
-                        $173[$174] = st[$174];
+                    var $176 = {};
+                    for (var $177 in st) {
+                      if ({}.hasOwnProperty.call(st, $177)) {
+                        $176[$177] = st[$177];
                       }
                       ;
                     }
                     ;
-                    $173.filePaths = result.filePaths;
-                    $173.message = "file1: " + fromMaybe("")(index2(result.filePaths)(0));
-                    return $173;
+                    $176.filePaths = result.filePaths;
+                    $176.message = "file1: " + fromMaybe("")(index2(result.filePaths)(0));
+                    return $176;
                   });
                 });
               });
@@ -10879,41 +10887,41 @@
         ;
         if (action2 instanceof ClickButton2) {
           return bind10(get5)(function(old_st) {
-            var $176 = eq22(old_st.filePaths)([]);
-            if ($176) {
+            var $179 = eq22(old_st.filePaths)([]);
+            if ($179) {
               return modify_5(function(st) {
-                var $177 = {};
-                for (var $178 in st) {
-                  if ({}.hasOwnProperty.call(st, $178)) {
-                    $177[$178] = st[$178];
+                var $180 = {};
+                for (var $181 in st) {
+                  if ({}.hasOwnProperty.call(st, $181)) {
+                    $180[$181] = st[$181];
                   }
                   ;
                 }
                 ;
-                $177.message = "\u8ACB\u5148\u9078\u53D6\u6A94\u6848";
-                return $177;
+                $180.message = "\u8ACB\u5148\u9078\u53D6\u6A94\u6848";
+                return $180;
               });
             }
             ;
             var v = checkInput(old_st.fps)(old_st.scale);
             return discard13(modify_5(function(st) {
-              var $181 = {};
-              for (var $182 in st) {
-                if ({}.hasOwnProperty.call(st, $182)) {
-                  $181[$182] = st[$182];
+              var $184 = {};
+              for (var $185 in st) {
+                if ({}.hasOwnProperty.call(st, $185)) {
+                  $184[$185] = st[$185];
                 }
                 ;
               }
               ;
-              $181.askProgressMsg = "\u767C\u9001\u8ACB\u6C42...";
-              return $181;
+              $184.askProgressMsg = "\u767C\u9001\u8ACB\u6C42...";
+              return $184;
             }))(function() {
               return bind10(liftAff2(request3({
                 username: defaultRequest.username,
                 password: defaultRequest.password,
                 withCredentials: defaultRequest.withCredentials,
                 timeout: defaultRequest.timeout,
-                url: "http://127.0.0.1:666/api/cut/makeCuts/?" + ("fps=" + (show6(v.value1.value0) + ("&scale=" + show6(v.value1.value1)))),
+                url: serverUrl + ("/api/cut/makeCuts/?" + ("fps=" + (show6(v.value1.value0) + ("&scale=" + show6(v.value1.value1))))),
                 method: new Left(POST2.value),
                 responseFormat: json2,
                 headers: [new RequestHeader("Accept", "application/json"), new RequestHeader("Content-Type", "application/json; charset=utf-8")],
@@ -10923,16 +10931,16 @@
                   return discard13(function() {
                     if (exceptT instanceof Right) {
                       return discard13(modify_5(function(st) {
-                        var $185 = {};
-                        for (var $186 in st) {
-                          if ({}.hasOwnProperty.call(st, $186)) {
-                            $185[$186] = st[$186];
+                        var $188 = {};
+                        for (var $189 in st) {
+                          if ({}.hasOwnProperty.call(st, $189)) {
+                            $188[$189] = st[$189];
                           }
                           ;
                         }
                         ;
-                        $185.askProgressMsg = "\u8655\u7406\u4E2D...";
-                        return $185;
+                        $188.askProgressMsg = "\u8655\u7406\u4E2D...";
+                        return $188;
                       }))(function() {
                         return pure18(unit);
                       });
@@ -10940,20 +10948,20 @@
                     ;
                     if (exceptT instanceof Left) {
                       return modify_5(function(st) {
-                        var $189 = {};
-                        for (var $190 in st) {
-                          if ({}.hasOwnProperty.call(st, $190)) {
-                            $189[$190] = st[$190];
+                        var $192 = {};
+                        for (var $193 in st) {
+                          if ({}.hasOwnProperty.call(st, $193)) {
+                            $192[$193] = st[$193];
                           }
                           ;
                         }
                         ;
-                        $189.message = exceptT.value0;
-                        return $189;
+                        $192.message = exceptT.value0;
+                        return $192;
                       });
                     }
                     ;
-                    throw new Error("Failed pattern match at Widget.CutVideo (line 371, column 7 - line 376, column 51): " + [exceptT.constructor.name]);
+                    throw new Error("Failed pattern match at Widget.CutVideo (line 372, column 7 - line 377, column 51): " + [exceptT.constructor.name]);
                   }())(function() {
                     return pure18(unit);
                   });
@@ -10966,16 +10974,16 @@
         if (action2 instanceof ClickButton_AlignRight) {
           return bind10(get5)(function(st) {
             return discard13(modify_5(function(st1) {
-              var $197 = {};
-              for (var $198 in st1) {
-                if ({}.hasOwnProperty.call(st1, $198)) {
-                  $197[$198] = st1[$198];
+              var $200 = {};
+              for (var $201 in st1) {
+                if ({}.hasOwnProperty.call(st1, $201)) {
+                  $200[$201] = st1[$201];
                 }
                 ;
               }
               ;
-              $197.isAlignRight = !st1.isAlignRight;
-              return $197;
+              $200.isAlignRight = !st1.isAlignRight;
+              return $200;
             }))(function() {
               return updateImgRender1;
             });
@@ -10986,21 +10994,6 @@
           return bind10(get5)(function(st) {
             if (action2.value0 === "op") {
               return modify_5(function(st1) {
-                var $201 = {};
-                for (var $202 in st1) {
-                  if ({}.hasOwnProperty.call(st1, $202)) {
-                    $201[$202] = st1[$202];
-                  }
-                  ;
-                }
-                ;
-                $201.opTime = action2.value1;
-                return $201;
-              });
-            }
-            ;
-            if (action2.value0 === "ed") {
-              return modify_5(function(st1) {
                 var $204 = {};
                 for (var $205 in st1) {
                   if ({}.hasOwnProperty.call(st1, $205)) {
@@ -11009,8 +11002,23 @@
                   ;
                 }
                 ;
-                $204.edTime = action2.value1;
+                $204.opTime = action2.value1;
                 return $204;
+              });
+            }
+            ;
+            if (action2.value0 === "ed") {
+              return modify_5(function(st1) {
+                var $207 = {};
+                for (var $208 in st1) {
+                  if ({}.hasOwnProperty.call(st1, $208)) {
+                    $207[$208] = st1[$208];
+                  }
+                  ;
+                }
+                ;
+                $207.edTime = action2.value1;
+                return $207;
               });
             }
             ;
@@ -11021,16 +11029,16 @@
         if (action2 instanceof ClickButton_checkbox_op) {
           return bind10(get5)(function(st) {
             return discard13(modify_5(function(st1) {
-              var $209 = {};
-              for (var $210 in st1) {
-                if ({}.hasOwnProperty.call(st1, $210)) {
-                  $209[$210] = st1[$210];
+              var $212 = {};
+              for (var $213 in st1) {
+                if ({}.hasOwnProperty.call(st1, $213)) {
+                  $212[$213] = st1[$213];
                 }
                 ;
               }
               ;
-              $209.isOpTimeEnable = !st1.isOpTimeEnable;
-              return $209;
+              $212.isOpTimeEnable = !st1.isOpTimeEnable;
+              return $212;
             }))(function() {
               return updateImgRender1;
             });
@@ -11040,16 +11048,16 @@
         if (action2 instanceof ClickButton_checkbox_ed) {
           return bind10(get5)(function(st) {
             return discard13(modify_5(function(st1) {
-              var $212 = {};
-              for (var $213 in st1) {
-                if ({}.hasOwnProperty.call(st1, $213)) {
-                  $212[$213] = st1[$213];
+              var $215 = {};
+              for (var $216 in st1) {
+                if ({}.hasOwnProperty.call(st1, $216)) {
+                  $215[$216] = st1[$216];
                 }
                 ;
               }
               ;
-              $212.isEdTimeEnable = !st1.isEdTimeEnable;
-              return $212;
+              $215.isEdTimeEnable = !st1.isEdTimeEnable;
+              return $215;
             }))(function() {
               return updateImgRender1;
             });
@@ -11059,16 +11067,16 @@
         if (action2 instanceof AskProgress) {
           if (action2.value0 instanceof Msg) {
             return discard13(modify_5(function(st) {
-              var $216 = {};
-              for (var $217 in st) {
-                if ({}.hasOwnProperty.call(st, $217)) {
-                  $216[$217] = st[$217];
+              var $219 = {};
+              for (var $220 in st) {
+                if ({}.hasOwnProperty.call(st, $220)) {
+                  $219[$220] = st[$220];
                 }
                 ;
               }
               ;
-              $216.askProgressMsg = action2.value0.value0;
-              return $216;
+              $219.askProgressMsg = action2.value0.value0;
+              return $219;
             }))(function() {
               return updateImgRender1;
             });
@@ -11076,16 +11084,16 @@
           ;
           if (action2.value0 instanceof VideoTable) {
             return discard13(modify_5(function(st) {
-              var $220 = {};
-              for (var $221 in st) {
-                if ({}.hasOwnProperty.call(st, $221)) {
-                  $220[$221] = st[$221];
+              var $223 = {};
+              for (var $224 in st) {
+                if ({}.hasOwnProperty.call(st, $224)) {
+                  $223[$224] = st[$224];
                 }
                 ;
               }
               ;
-              $220.ap_videoTable = action2.value0.value0;
-              return $220;
+              $223.ap_videoTable = action2.value0.value0;
+              return $223;
             }))(function() {
               return updateImgRender1;
             });
@@ -11093,91 +11101,91 @@
           ;
           if (action2.value0 instanceof Done3) {
             return discard13(modify_5(function(st) {
-              var $224 = {};
-              for (var $225 in st) {
-                if ({}.hasOwnProperty.call(st, $225)) {
-                  $224[$225] = st[$225];
+              var $227 = {};
+              for (var $228 in st) {
+                if ({}.hasOwnProperty.call(st, $228)) {
+                  $227[$228] = st[$228];
                 }
                 ;
               }
               ;
-              $224.askProgressMsg = "\u5207\u7247\u5B8C\u6210";
-              $224.showAPslot = true;
-              $224.showCCCslot = true;
-              return $224;
+              $227.askProgressMsg = "\u5207\u7247\u5B8C\u6210";
+              $227.showAPslot = true;
+              $227.showCCCslot = true;
+              return $227;
             }))(function() {
               return updateImgRender1;
             });
           }
           ;
-          throw new Error("Failed pattern match at Widget.CutVideo (line 397, column 5 - line 411, column 24): " + [action2.value0.constructor.name]);
+          throw new Error("Failed pattern match at Widget.CutVideo (line 398, column 5 - line 412, column 24): " + [action2.value0.constructor.name]);
         }
         ;
         if (action2 instanceof CutCutCut) {
           if (action2.value0.value0 instanceof Ready) {
             return modify_5(function(st) {
-              var $229 = {};
-              for (var $230 in st) {
-                if ({}.hasOwnProperty.call(st, $230)) {
-                  $229[$230] = st[$230];
+              var $232 = {};
+              for (var $233 in st) {
+                if ({}.hasOwnProperty.call(st, $233)) {
+                  $232[$233] = st[$233];
                 }
                 ;
               }
               ;
-              $229.cutcutcutMsg = "\u5DF2\u555F\u52D5";
-              return $229;
+              $232.cutcutcutMsg = "\u5DF2\u555F\u52D5";
+              return $232;
             });
           }
           ;
           if (action2.value0.value0 instanceof Handling) {
             return modify_5(function(st) {
-              var $233 = {};
-              for (var $234 in st) {
-                if ({}.hasOwnProperty.call(st, $234)) {
-                  $233[$234] = st[$234];
+              var $236 = {};
+              for (var $237 in st) {
+                if ({}.hasOwnProperty.call(st, $237)) {
+                  $236[$237] = st[$237];
                 }
                 ;
               }
               ;
-              $233.cutcutcutMsg = "\u526A\u8F2F\u4E2D...";
-              return $233;
+              $236.cutcutcutMsg = "\u526A\u8F2F\u4E2D...";
+              return $236;
             });
           }
           ;
           if (action2.value0.value0 instanceof Done4) {
             return modify_5(function(st) {
-              var $237 = {};
-              for (var $238 in st) {
-                if ({}.hasOwnProperty.call(st, $238)) {
-                  $237[$238] = st[$238];
+              var $240 = {};
+              for (var $241 in st) {
+                if ({}.hasOwnProperty.call(st, $241)) {
+                  $240[$241] = st[$241];
                 }
                 ;
               }
               ;
-              $237.cutcutcutMsg = "\u526A\u8F2F\u5B8C\u6210";
-              return $237;
+              $240.cutcutcutMsg = "\u526A\u8F2F\u5B8C\u6210";
+              return $240;
             });
           }
           ;
           if (action2.value0.value0 instanceof Done_Error) {
             return modify_5(function(st) {
-              var $241 = {};
-              for (var $242 in st) {
-                if ({}.hasOwnProperty.call(st, $242)) {
-                  $241[$242] = st[$242];
+              var $244 = {};
+              for (var $245 in st) {
+                if ({}.hasOwnProperty.call(st, $245)) {
+                  $244[$245] = st[$245];
                 }
                 ;
               }
               ;
-              $241.cutcutcutMsg = "\u526A\u8F2F\u5B8C\u6210 \u51FA\u73FE\u932F\u8AA4";
-              return $241;
+              $244.cutcutcutMsg = "\u526A\u8F2F\u5B8C\u6210 \u51FA\u73FE\u932F\u8AA4";
+              return $244;
             });
           }
           ;
-          throw new Error("Failed pattern match at Widget.CutVideo (line 413, column 5 - line 417, column 88): " + [action2.value0.constructor.name]);
+          throw new Error("Failed pattern match at Widget.CutVideo (line 414, column 5 - line 418, column 88): " + [action2.value0.constructor.name]);
         }
         ;
-        throw new Error("Failed pattern match at Widget.CutVideo (line 329, column 23 - line 417, column 88): " + [action2.constructor.name]);
+        throw new Error("Failed pattern match at Widget.CutVideo (line 330, column 23 - line 418, column 88): " + [action2.constructor.name]);
       };
     };
     var _wcccSlot = /* @__PURE__ */ function() {

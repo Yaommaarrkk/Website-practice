@@ -12,6 +12,7 @@ import Affjax.Web as AX
 import Affjax (printError)
 import Affjax.ResponseFormat as AXRF
 import Affjax.RequestHeader as AXRH
+import MyLibrary.General (serverUrl)
 import MyLibrary.Http.JSON (ApiResponse(..), ResultResponse(..), WFD_Result(..))
 import Data.Argonaut.Decode (JsonDecodeError, decodeJson)
 
@@ -107,7 +108,7 @@ handleAction action = case action of
     m_respond <-
       H.liftAff $ AX.request
         $ AX.defaultRequest
-            { url = "http://127.0.0.1:666/api/os"
+            { url = serverUrl <> "/api/os"
             , method = Left GET
             , responseFormat = AXRF.json -- 回傳內容用json格式解析
             , headers =

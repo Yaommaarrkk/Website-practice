@@ -12,6 +12,7 @@ import Affjax.Web as AX
 import Affjax (printError)
 import Affjax.ResponseFormat as AXRF
 import Affjax.RequestHeader as AXRH
+import MyLibrary.General (serverUrl)
 
 type Slot id
   = H.Slot Query Output id
@@ -74,7 +75,7 @@ handleAction action = case action of
     m_respond <-
       H.liftAff $ AX.request
         $ AX.defaultRequest
-            { url = "http://127.0.0.1:666/api/echo/" <> show old_st.multiple <> "/" <> old_st.input
+            { url = serverUrl <> "/api/echo/" <> show old_st.multiple <> "/" <> old_st.input
             , method = Left GET
             , responseFormat = AXRF.string -- 回傳內容用string格式解析
             , headers =

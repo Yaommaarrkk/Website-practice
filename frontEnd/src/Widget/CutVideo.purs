@@ -30,6 +30,7 @@ import Affjax.RequestHeader as AXRH
 import Affjax.RequestBody as AXRB
 import Effect.Console (log, logShow)
 import MyLibrary.CutVideo.MakeCutsType as McType
+import MyLibrary.General (serverUrl)
 import MyLibrary.Http.JSON (ApiResponse(..), ResultResponse(..), WCV_MC_Result(..))
 import MyLibrary.FileSystem.FileSystem as MyFs
 import Data.Argonaut.Decode (JsonDecodeError, decodeJson)
@@ -358,7 +359,7 @@ handleAction action = case action of
       m_respond <-
         H.liftAff $ AX.request
           $ AX.defaultRequest
-              { url = "http://127.0.0.1:666/api/cut/makeCuts/?" <> "fps=" <> show fps_int <> "&scale=" <> show scale_int
+              { url = serverUrl <> "/api/cut/makeCuts/?" <> "fps=" <> show fps_int <> "&scale=" <> show scale_int
               , method = Left POST
               , responseFormat = AXRF.json -- 回傳內容用json格式解析
               , headers =
@@ -457,9 +458,7 @@ updateImgRender :: forall m. MonadAff m => H.HalogenM State Action Slots Output 
 updateImgRender = do
   st <- H.get
   let
-    fps = case fromString st.fps of
-      Just num -> num
-      _ -> 1
+    Tuple _ (Tuple fps _) = checkInput st.fps st.scale
 
     radio = Radio st.isOpTimeEnable st.opTime st.isEdTimeEnable st.edTime
   H.liftEffect $ log "tempDirPath:"

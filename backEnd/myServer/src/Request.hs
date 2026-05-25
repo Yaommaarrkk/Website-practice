@@ -35,7 +35,7 @@ data Request = Request
   , headers :: Headers
   , m_bodies :: Maybe Bodies
   } deriving (Show)
-data Method = GET | POST | Unknown deriving (Show, Eq)
+data Method = GET | POST | OPTIONS | Unknown deriving (Show, Eq)
 newtype Path = Path [String] deriving (Show, Eq)
 type Headers = [Header]
 type Header = (BC.ByteString, BC.ByteString)
@@ -156,6 +156,7 @@ splitRequest req = do
             _method = case BC.unpack method_ of
               "GET" -> GET
               "POST" -> POST
+              "OPTIONS" -> OPTIONS
               _ -> Unknown
             _path = parsePath path_
             (_headers, _m_bodies) = splitHeadersAndBody xs

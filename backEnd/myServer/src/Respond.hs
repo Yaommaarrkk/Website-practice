@@ -68,7 +68,7 @@ data ResponseFile = ResponseFile
 respond :: NS.Socket -> Response -> Logger -> IO [Error] -- 最終respond 前一層為respondJSON或respondFile
 respond clientSocket (Response headers statusCode body) logger = do
   let firstLine = BC.pack ("HTTP/1.1 " <> show statusCode)
-      finalHeaders = getFinalHeader $ headers ++ [("Content-Length", show $ BL.length body)]
+      finalHeaders = getFinalHeader $ headers ++ corsHeaders ++ [("Content-Length", show $ BL.length body)]
       finalResponse =
         BC.concat $
           map (<> (BC.pack "\r\n")) $
@@ -81,6 +81,12 @@ respond clientSocket (Response headers statusCode body) logger = do
     (_, Left e) -> logger $ "Error sending body: " ++ show e
     _ -> logger "Response sent successfully"
   return []
+  where
+    corsHeaders =
+      [ ("Access-Control-Allow-Origin", "*"),
+        ("Access-Control-Allow-Methods", "GET, POST, OPTIONS"),
+        ("Access-Control-Allow-Headers", "Content-Type, Accept")
+      ]
 
 respondJSON :: ToJSON a => NS.Socket -> ResponseJSON a -> Http.StatusCode -> Logger -> IO [Error]
 respondJSON clientSocket responseJSON statusCode = respond clientSocket response

@@ -26,6 +26,7 @@ import Web.HTML.HTMLElement as HTMLElement
 import Web.DOM.Element as Element
 import Web.DOM.Document as DDoc
 import Web.DOM.Node as DNode
+import MyLibrary.General (serverUrl)
 import MyLibrary.Http.Response as MyRp
 
 type Slot id
@@ -77,7 +78,7 @@ handleAction action = case action of
     m_response <-
       H.liftAff $ AX.request
         $ AX.defaultRequest
-            { url = "http://127.0.0.1:666/api/file/download/" <> old_st.input
+            { url = serverUrl <> "/api/file/download/" <> old_st.input
             , method = Left GET
             , responseFormat = AXRF.blob -- 回傳內容用"檔案"格式解析 設定body的型別
             , headers =

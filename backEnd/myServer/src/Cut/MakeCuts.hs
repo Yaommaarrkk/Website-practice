@@ -25,6 +25,7 @@ import Control.Monad.Trans.Reader (runReaderT)
 import qualified Cut.MakeCuts_type as MC_type
 import Data.Aeson (decode)
 import qualified Data.ByteString.Char8 as BC
+import qualified Data.ByteString.Lazy as BL
 import Data.Foldable (forM_)
 import Data.List (intercalate, sortBy)
 import Data.Time (defaultTimeLocale, formatTime, getCurrentTime)
@@ -72,7 +73,7 @@ getEd (_, _) = ""
 get_m_filePaths :: Maybe Rq.Bodies -> Maybe [FilePath]
 -- 理論上m_bodies(JSON格式的Body)恰有一個成員
 -- 在這裡解析JSON 而不是在Request
-get_m_filePaths (Just (body : _)) = (decode . BC.fromStrict) body :: Maybe [String]
+get_m_filePaths (Just (body : _)) = (decode . BL.fromStrict) body :: Maybe [String]
 get_m_filePaths _ = Nothing
 
 newDir :: FilePath -> String -> MTime.TimeFormat -> IO FilePath -- TimeFormat = FullTimestamp | TimeOfDay | Empty
@@ -200,6 +201,7 @@ cutCutCutSingle input cf tempDir logger = do
       --參數(輸入檔名, 去頭秒數, 去尾秒數, 輸出檔名)
       args = ["-n"] ++ ss ++ to ++ ["-i", input, "-c", "copy", tempDir ++ "/" ++ takeFileName input]
 
+  liftIO $ logger $ "cutCutCut ffmpeg args: " ++ show args
   liftIO (try (callProcess "ffmpeg" args)) >>= \case
     Left err -> throwE $ Error (ApiCut_err, "error: ffmpeg 剪切失敗\nerrorMessage: " ++ show (err :: SomeException))
     Right _ -> return ()

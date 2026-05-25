@@ -26,6 +26,7 @@ import Affjax.RequestHeader as AXRH
 import Affjax.RequestBody as AXRB
 import Effect.Console (log)
 import Data.HTTP.Method (Method(..))
+import MyLibrary.General (serverUrl)
 import MyLibrary.Http.JSON (ApiResponse(..), ResultResponse(..), WCV_AP_Result(..))
 import Data.Argonaut.Decode (JsonDecodeError, decodeJson)
 import Data.Argonaut.Core as JSON
@@ -59,6 +60,7 @@ data Action
 
 type State
   = { requestID :: String
+    , videoNames :: Array String
     , isComplete :: Boolean
     , videoTable :: McType.JobMap
     }
@@ -68,6 +70,12 @@ updateState input =
   H.modify_ \st ->
     st
       { requestID = input.requestID
+      , videoNames = input.videoNames
+      , videoTable =
+          if input.requestID /= st.requestID then
+            McType.mkJobMap input.videoNames
+          else
+            st.videoTable
       }
 
 component :: forall query m. MonadAff m => H.Component query Input Output m
@@ -87,6 +95,7 @@ component =  -- (初始狀態, 怎麼渲染畫面, 處理互動, 外部事件)
   initialState :: Input -> State
   initialState input =
     { requestID: input.requestID
+    , videoNames: input.videoNames
     , videoTable: McType.mkJobMap input.videoNames
     , isComplete: false
     }
@@ -125,7 +134,7 @@ handleAction action = case action of
     m_respond <-
       H.liftAff $ AX.request
         $ AX.defaultRequest
-            { url = "http://127.0.0.1:666/api/cut/askProgress/?" <> "requestID=" <> old_st.requestID
+            { url = serverUrl <> "/api/cut/askProgress/?" <> "requestID=" <> old_st.requestID
             , method = Left GET
             , responseFormat = AXRF.json -- 回傳內容用json格式解析
             , headers =

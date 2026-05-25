@@ -97,7 +97,7 @@ main = do
 createServer :: Logger -> IO NS.Socket
 createServer logger = do
   let host = "127.0.0.1"
-      port = "666"
+      port = "7666"
 
   -- BC是ByteString.Char8
   -- 在這裡用ByteString取代String

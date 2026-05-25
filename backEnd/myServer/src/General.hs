@@ -16,6 +16,7 @@ where
 import Control.Concurrent
 import Control.Concurrent.MVar
 import Control.Concurrent.STM (TQueue, writeTQueue)
+import Control.Applicative ((<|>))
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (asks)
 import Control.Monad.STM (atomically)
@@ -26,18 +27,42 @@ import Foreign.C.Types
 import Foreign.C.Types (CULong)
 import MyLibrary.Environment
 import qualified Network.Socket as NS
+import System.Directory (getCurrentDirectory)
+import System.Environment (lookupEnv)
+import System.FilePath (addTrailingPathSeparator, normalise, (</>))
 import System.IO
 import System.IO.Unsafe (unsafePerformIO)
 import System.Win32.Types (DWORD, HANDLE)
 
 backEndProjectPath :: [Char]
-backEndProjectPath = "D:/coding/encoding/httpServer/multipleCutVideo/backEnd/myServer/"
+backEndProjectPath =
+  envPathOr "MCV_BACKEND_PATH" (projectPath </> "backEnd" </> "myServer")
+{-# NOINLINE backEndProjectPath #-}
 
 frontEndProjectPath :: [Char]
-frontEndProjectPath = "D:/coding/encoding/httpServer/multipleCutVideo/frontEnd/"
+frontEndProjectPath =
+  envPathOr "MCV_FRONTEND_PATH" (projectPath </> "frontEnd")
+{-# NOINLINE frontEndProjectPath #-}
 
 projectPath :: [Char]
-projectPath = "D:/coding/encoding/httpServer/multipleCutVideo/"
+projectPath =
+  unsafePerformIO $ do
+    mProjectPath <- lookupEnv "MCV_PROJECT_PATH"
+    mProjectRoot <- lookupEnv "MCV_PROJECT_ROOT"
+    cwd <- getCurrentDirectory
+    return $ normalizeDir $ case mProjectPath <|> mProjectRoot of
+      Just path -> path
+      Nothing -> cwd
+{-# NOINLINE projectPath #-}
+
+envPathOr :: String -> FilePath -> FilePath
+envPathOr key fallback =
+  unsafePerformIO $ do
+    mPath <- lookupEnv key
+    return $ normalizeDir $ maybe fallback id mPath
+
+normalizeDir :: FilePath -> FilePath
+normalizeDir = addTrailingPathSeparator . normalise
 
 {-# NOINLINE printLock #-}
 printLock :: MVar ()

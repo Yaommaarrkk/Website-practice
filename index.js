@@ -1,12 +1,18 @@
 import { app, BrowserWindow, ipcMain, dialog } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
+import { execFile, spawn } from "child_process";
+import net from "net";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const preloadPath = path.join(__dirname, "preload.js");
+
+const preloadPath = path.join(__dirname, "preload.cjs");
+const backendPort = 7666;
 
 let mainWindow;
+let backendProcess;
+let isQuitting = false;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -20,29 +26,127 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadFile("index.html");
+  mainWindow.loadFile(path.join(__dirname, "index.html"));
   // mainWindow.webContents.openDevTools()
   console.log("preloadPath: " + preloadPath);
 }
 
-app.whenReady().then(() => {
+function startBackend() {
+  const projectPath = __dirname;
+  const backendPath = path.join(projectPath, "backEnd", "myServer");
+  const frontendPath = path.join(projectPath, "frontEnd");
+  const backendCommand = process.platform === "win32" ? "stack.exe" : "stack";
+  let backendErrorOutput = "";
+
+  backendProcess = spawn(backendCommand, ["run", "--", "+RTS", "-N", "-RTS"], {
+    cwd: backendPath,
+    env: {
+      ...process.env,
+      MCV_PROJECT_PATH: projectPath,
+      MCV_BACKEND_PATH: backendPath,
+      MCV_FRONTEND_PATH: frontendPath,
+    },
+  });
+
+  backendProcess.stdout.on("data", (data) => {
+    if (process.env.MCV_BACKEND_LOGS === "1") {
+      console.log("[backend]", data.toString());
+    }
+  });
+
+  backendProcess.stderr.on("data", (data) => {
+    backendErrorOutput += data.toString();
+    if (process.env.MCV_BACKEND_LOGS === "1") {
+      console.error("[backend err]", data.toString());
+    }
+  });
+
+  backendProcess.on("close", (code, signal) => {
+    if (!isQuitting) {
+      console.log("backend exited:", code, signal);
+    }
+    if (!isQuitting && code !== 0 && backendErrorOutput) {
+      console.error("[backend err]", backendErrorOutput);
+    }
+  });
+}
+
+function isBackendListening(port = backendPort) {
+  return new Promise((resolve, reject) => {
+    const socket = net.createConnection({ host: "127.0.0.1", port }, () => {
+      socket.end();
+      resolve(true);
+    });
+
+    socket.setTimeout(500);
+    socket.on("error", () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.on("timeout", () => {
+      socket.destroy();
+      resolve(false);
+    });
+  });
+}
+
+async function waitForBackend(port = backendPort, timeoutMs = 10000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    if (await isBackendListening(port)) return;
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+
+  throw new Error(`backend did not start on port ${port}`);
+}
+
+function stopBackend() {
+  if (!backendProcess || backendProcess.killed) return;
+
+  if (process.platform === "win32") {
+    execFile("taskkill", ["/pid", String(backendProcess.pid), "/T", "/F"], () => {});
+    return;
+  }
+
+  backendProcess.kill();
+}
+
+async function ensureBackend() {
+  if (await isBackendListening()) {
+    console.log(`backend already listening on ${backendPort}`);
+    return;
+  }
+
+  startBackend();
+}
+
+app.whenReady().then(async () => {
+  await ensureBackend();
+
+  // 等 backend 起來
+  try {
+    await waitForBackend();
+  } catch (err) {
+    console.error(err);
+  }
+
   createWindow();
 
-  // IPC handler 必須在 app ready 內
   ipcMain.handle("openFileDialog", async () => {
-    console.log("IPC handler called");
     const result = await dialog.showOpenDialog({
       properties: ["openFile", "multiSelections"],
     });
-    console.log("dialog result:", result.filePaths);
-    return result;
-  });
 
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    return result;
   });
 });
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
+});
+
+app.on("will-quit", () => {
+  isQuitting = true;
+  stopBackend();
 });

@@ -16,7 +16,7 @@ import Data.Either (lefts)
 import Data.List (isInfixOf)
 import Data.List.Split (splitOn)
 import qualified Data.Map as M
-import Data.Maybe (catMaybes, fromMaybe)
+import Data.Maybe (catMaybes, mapMaybe, fromMaybe)
 import Data.Time (getCurrentTime)
 import Error
 import General
@@ -86,6 +86,7 @@ handleRequestArgs clientSocket apiRoute rawArgs (Rq.Request method _ headers m_b
 handleURL :: NS.Socket -> Rq.Request -> MyIO [Error]
 handleURL clientSocket request@(Rq.Request method path headers _) =
   case method of
+    Rq.OPTIONS -> withLogger $ Rp.respondMessage clientSocket True ""
     Rq.GET ->
       case path of
         -- API GET
@@ -224,7 +225,7 @@ handleAskProgress clientSocket [AV_String filePathAndArgs] _ = do
         Just progress -> do
           let jobQueue = MC_type.jobQueue progress
               jobMap = MC_type.jobMap progress
-              updateJobs = map (`M.lookup` jobMap) jobQueue
+              updateJobs = mapMaybe (`M.lookup` jobMap) jobQueue
               isComplete = MC_type.getIsComplete progress
               myVars =
                 M.fromList
