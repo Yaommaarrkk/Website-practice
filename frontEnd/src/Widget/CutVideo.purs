@@ -125,80 +125,116 @@ component =  -- (初始狀態, 怎麼渲染畫面, 處理互動, 外部事件)
 
 render :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m
 render state =  -- render呈現/繪製 構建HTML
-  HH.div_
-    [ HH.div [ HP.style "display: flex; gap: 10px;" ]
-        [ HH.button
-            [ HE.onClick \_ -> ClickFileButton ]
-            [ HH.text "選取檔案" ]
-        , HH.p_ [ HH.text (fromMaybe "尚未選取檔案" (state.filePaths `index` 0)) ]
-        ]
-    , HH.div [ HP.style "display: flex; gap: 10px;" ]
-        [ HH.text "每秒的影格數："
-        , HH.input
-            [ HP.type_ HP.InputText
-            , HP.placeholder "fps 預設6"
-            , HP.value state.fps
-            , HE.onValueInput \s -> InputChanged_fps s
+  HH.div
+    [ HP.class_ (HH.ClassName "cut-tool") ]
+    [ HH.section
+        [ HP.class_ (HH.ClassName "control-panel") ]
+        [ HH.div
+            [ HP.class_ (HH.ClassName "file-row") ]
+            [ HH.button
+                [ HP.class_ (HH.ClassName "primary-button")
+                , HE.onClick \_ -> ClickFileButton
+                ]
+                [ HH.text "選擇影片" ]
+            , HH.div
+                [ HP.class_ (HH.ClassName "file-summary") ]
+                [ HH.span_ [ HH.text "目前檔案" ]
+                , HH.strong_ [ HH.text (fromMaybe "尚未選擇檔案" (state.filePaths `index` 0)) ]
+                ]
             ]
-        , HH.text "縮放大小："
-        , HH.input
-            [ HP.type_ HP.InputText
-            , HP.placeholder "scale 預設160"
-            , HP.value state.scale
-            , HE.onValueInput \s -> InputChanged_scale s
+        , HH.div
+            [ HP.class_ (HH.ClassName "input-grid") ]
+            [ HH.label_
+                [ HH.span_ [ HH.text "每秒抽幀數" ]
+                , HH.input
+                    [ HP.type_ HP.InputText
+                    , HP.placeholder "預設 6"
+                    , HP.value state.fps
+                    , HE.onValueInput \s -> InputChanged_fps s
+                    ]
+                ]
+            , HH.label_
+                [ HH.span_ [ HH.text "縮圖寬度" ]
+                , HH.input
+                    [ HP.type_ HP.InputText
+                    , HP.placeholder "預設 160"
+                    , HP.value state.scale
+                    , HE.onValueInput \s -> InputChanged_scale s
+                    ]
+                ]
+            ]
+        , HH.div
+            [ HP.class_ (HH.ClassName "option-row") ]
+            [ checkbox "checkbox-align" state.isAlignRight "對齊片尾" ClickButton_AlignRight
+            , checkbox "checkbox-op" state.isOpTimeEnable "顯示開頭切點" ClickButton_checkbox_op
+            , checkbox "checkbox-ed" state.isEdTimeEnable "顯示片尾切點" ClickButton_checkbox_ed
+            ]
+        , HH.div
+            [ HP.class_ (HH.ClassName "action-row") ]
+            [ HH.button
+                [ HP.class_ (HH.ClassName "primary-button")
+                , HE.onClick \_ -> ClickButton
+                ]
+                [ HH.text "產生時間軸" ]
             ]
         ]
-    , HH.button
-        [ HE.onClick \_ -> ClickButton ]
-        [ HH.text "送出" ]
-    , HH.label
-        []
-        [ HH.input
-            [ HP.type_ HP.InputCheckbox
-            , HP.name "checkbox-op"
-            , HP.checked state.isAlignRight
-            , HE.onChange \_ -> ClickButton_AlignRight
+    , HH.section
+        [ HP.class_ (HH.ClassName "progress-panel") ]
+        [ HH.div
+            [ HP.class_ (HH.ClassName "metric") ]
+            [ HH.span_ [ HH.text "抽幀進度" ]
+            , HH.strong_ [ HH.text state.askProgressMsg ]
             ]
-        , HH.text "對齊片尾"
-        ]
-    , HH.label
-        []
-        [ HH.input
-            [ HP.type_ HP.InputCheckbox
-            , HP.name "checkbox-op"
-            , HP.checked state.isOpTimeEnable
-            , HE.onChange \_ -> ClickButton_checkbox_op
+        , HH.div
+            [ HP.class_ (HH.ClassName "metric") ]
+            [ HH.span_ [ HH.text "剪輯狀態" ]
+            , HH.strong_ [ HH.text state.cutcutcutMsg ]
             ]
-        , HH.text "顯示開頭"
-        ]
-    , HH.label
-        []
-        [ HH.input
-            [ HP.type_ HP.InputCheckbox
-            , HP.name "checkbox-ed"
-            , HP.checked state.isEdTimeEnable
-            , HE.onChange \_ -> ClickButton_checkbox_ed
-            ]
-        , HH.text "顯示片尾"
-        ]
-    , HH.p_ [ HH.text state.message ]
-    , HH.div_ -- AskProgress元件
-        [ HH.p_ [ HH.text ("AskProgress元件: " <> state.askProgressMsg) ]
         , if state.showAPslot then
-            HH.slot _wapSlot unit WAP.component args_ap AskProgress -- Nothing 相當於延遲初始化
+            HH.slot _wapSlot unit WAP.component args_ap AskProgress
           else
             HH.text ""
         ]
-    , HH.div [ HP.style "display: flex; overflow-x: auto;" ] [ state.imgRender ]
-    , HH.div_ -- CutCutCut元件
-        [ HH.p_ [ HH.text ("Cutcutcut元件: " <> state.cutcutcutMsg) ]
+    , HH.section
+        [ HP.class_ (HH.ClassName "timeline-panel") ]
+        [ HH.div
+            [ HP.class_ (HH.ClassName "section-title compact") ]
+            [ HH.div_
+                [ HH.h3_ [ HH.text "時間軸預覽" ]
+                , HH.p_ [ HH.text "抽幀完成後，選擇開始與結束位置。" ]
+                ]
+            ]
+        , HH.div [ HP.class_ (HH.ClassName "timeline-scroll") ] [ state.imgRender ]
+        ]
+    , HH.section
+        [ HP.class_ (HH.ClassName "cut-panel") ]
+        [ if state.message == "" then
+            HH.text ""
+          else
+            HH.div
+              [ HP.class_ (HH.ClassName "output-location") ]
+              [ HH.span_ [ HH.text "輸出位置" ]
+              , HH.strong_ [ HH.text state.message ]
+              ]
         , if state.showCCCslot then
             HH.slot _wcccSlot unit WCCC.component args_ccc CutCutCut
           else
-            HH.text ""
+            HH.div [ HP.class_ (HH.ClassName "empty-state") ] [ HH.text "時間軸完成後即可開始剪輯。" ]
         ]
     ]
   where
+  checkbox name checked label action =
+    HH.label
+      [ HP.class_ (HH.ClassName "check-option") ]
+      [ HH.input
+          [ HP.type_ HP.InputCheckbox
+          , HP.name name
+          , HP.checked checked
+          , HE.onChange \_ -> action
+          ]
+      , HH.text label
+      ]
+
   args_ap :: WAP.Input
   args_ap =
     { requestID: state.requestID
@@ -239,7 +275,7 @@ allRows tempDirPath isAlignRight fps (Radio isOpTimeEnable opTime isEdTimeEnable
 
     htmlTable =
       HH.table
-        [ HP.style "border-collapse: collapse; width: 100%;" ]
+        [ HP.class_ (HH.ClassName "timeline-table") ]
         ( [ timeRow ]
             <> [ HH.tbody_ (if isOpTimeEnable then [ opRow ] else []) ]
             <> [ HH.tbody_ (if isEdTimeEnable then [ edRow ] else []) ]
@@ -254,22 +290,22 @@ allRows tempDirPath isAlignRight fps (Radio isOpTimeEnable opTime isEdTimeEnable
 
   radioLabel s =
     HH.div
-      [ HP.style "white-space: nowrap;" ] -- 不自動換行
+      [ HP.class_ (HH.ClassName "timeline-label") ]
       [ HH.text s ]
 
   imgRow :: Int -> String -> Int -> HH.HTML (H.ComponentSlot Slots m Action) Action
   imgRow maxFrames dirPath totalFrames =
     HH.tr
-      [ HP.style "border-bottom: 1px solid #ccc;" ]
+      [ HP.class_ (HH.ClassName "timeline-video-row") ]
       (makeTd Nothing : fillerTd <> imgTd)
     -- (  [HH.div_ []]
     -- <> if isAlignRight then replicate 3 (HH.div_ []) else []
     -- <> map (pathToRender <<< numToPath) (range 1 totalFrames)
     -- )
     where
-    makeTd (Just html) = HH.td [ HP.style "padding: 2px;" ] [ html ]
+    makeTd (Just html) = HH.td [ HP.class_ (HH.ClassName "frame-cell") ] [ html ]
 
-    makeTd Nothing = HH.td [ HP.style "padding: 2px;" ] []
+    makeTd Nothing = HH.td [ HP.class_ (HH.ClassName "frame-cell") ] []
 
     fillerTd = if isAlignRight then replicate (maxFrames - totalFrames) (makeTd Nothing) else []
 
@@ -279,7 +315,7 @@ allRows tempDirPath isAlignRight fps (Radio isOpTimeEnable opTime isEdTimeEnable
     pathToRender path =
       HH.img
         [ HP.src path
-        , HP.style "margin-right: 5px; height: 100px;"
+        , HP.class_ (HH.ClassName "frame-image")
         ]
 
     numToPath :: Int -> String

@@ -1,6 +1,6 @@
 module Main where
 
-import Prelude (Unit, bind, const, map, show, unit, (<>))
+import Prelude (Unit, bind, map, show, unit, (<>))
 import Data.String.Common (split)
 import Data.String.Pattern (Pattern(..))
 import Halogen as H
@@ -74,62 +74,53 @@ component =  -- (初始狀態, 怎麼渲染畫面, 處理互動, 外部事件)
 
 render :: forall m. MonadAff m => State -> H.ComponentHTML Action Slots m
 render state =
-  HH.div_
-    -- [ HH.h2_ [ HH.text "歡迎來到首頁" ]
-    -- , HH.div [ HP.style "display: flex; gap: 10px;"] -- flex 橫向排列
-    --   [ HH.div
-    --     [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
-    --     [ HH.h3_ [ HH.text "我的裝置：" ]
-    --     , HH.slot _wfdSlot unit WFD.component unit (FetchDevice unit)
-    --     ]
-    --   , HH.div
-    --     [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
-    --     [ HH.h3_ [ HH.text "重複每個字元 - 重複2次" ]
-    --     , HH.slot _wdiSlot 0 WDI.component { multiple: 2 } (DoubleInput 0)
-    --     ]
-    --   , HH.div
-    --     [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
-    --     [ HH.h3_ [ HH.text "重複每個字元 - 重複3次" ]
-    --     , HH.slot _wdiSlot 1 WDI.component { multiple: 3 } (DoubleInput 1)
-    --     ]
-    --   ]
-    -- , HH.div [ HP.style "display: flex; gap: 10px;"]
-    --   [ HH.div
-    --     [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
-    --     [ HH.h3_ [ HH.text "查看檔案" ]
-    --     , HH.p_ [ HH.text ("內容：" <> state.childInfo)]
-    --     , HH.slot _wvfSlot unit WVF.component unit ViewFile
-    --     ]
-    --   , HH.div
-    --     [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
-    --     [ HH.h3_ [ HH.text "下載檔案" ]
-    --     , HH.slot _wdfSlot unit WDF.component unit DownloadFile
-    --     ]
-    --   , HH.div
-    --     [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
-    --     [ HH.h3_ [ HH.text "上傳檔案" ]
-    --     --, HH.slot _wufSlot unit WUF.component unit UploadFile
-    --     ]
-    --   ]
-    [ HH.div [ HP.style "display: flex; gap: 10px;" ]
-        [ HH.div
-            [ HP.style "border-right: 1px solid #ccc; padding-right: 10px;" ]
-            [ HH.h3_ [ HH.text "產生切片" ]
-            , HH.p_ [ HH.text ("結果：" <> state.childInfo) ]
+  HH.main
+    [ HP.class_ (HH.ClassName "app-shell") ]
+    [ HH.header
+        [ HP.class_ (HH.ClassName "app-header") ]
+        [ HH.div_
+            [ HH.p
+                [ HP.class_ (HH.ClassName "eyebrow") ]
+                [ HH.text "Haskell + PureScript + Electron" ]
+            , HH.h1_ [ HH.text "Multiple Cut Video" ]
+            , HH.p
+                [ HP.class_ (HH.ClassName "subtitle") ]
+                [ HH.text "用桌面介面串接後端 HTTP server，完成影片抽幀、進度輪詢與多檔切片流程。" ]
+            ]
+        , HH.div
+            [ HP.class_ (HH.ClassName "status-panel") ]
+            [ HH.span [ HP.class_ (HH.ClassName "status-label") ] [ HH.text "目前元件" ]
+            , HH.strong_ [ HH.text state.childInfo ]
+            ]
+        ]
+    , HH.section
+        [ HP.class_ (HH.ClassName "workflow-grid") ]
+        [ HH.aside
+            [ HP.class_ (HH.ClassName "workflow-rail") ]
+            [ HH.h2_ [ HH.text "系統流程" ]
+            , HH.ol_
+                [ HH.li_ [ HH.text "Electron 啟動 Haskell backend" ]
+                , HH.li_ [ HH.text "Halogen UI 選取影片與送出參數" ]
+                , HH.li_ [ HH.text "後端建立 request id 並開始抽幀" ]
+                , HH.li_ [ HH.text "前端輪詢進度並呈現時間軸" ]
+                , HH.li_ [ HH.text "依照起訖時間送出切片請求" ]
+                ]
+            ]
+        , HH.section
+            [ HP.class_ (HH.ClassName "workspace") ]
+            [ HH.div
+                [ HP.class_ (HH.ClassName "section-title") ]
+                [ HH.div_
+                    [ HH.h2_ [ HH.text "影片切片工作台" ]
+                    , HH.p_ [ HH.text "選檔、抽幀、指定切點，最後送出剪輯。" ]
+                    ]
+                , HH.div
+                    [ HP.class_ (HH.ClassName "result-pill") ]
+                    [ HH.text ("結果：" <> state.message) ]
+                ]
             , HH.slot _wcvSlot unit WCV.component unit CutVideo
             ]
         ]
-    -- , HH.div_
-    --   [ HH.h3_ [ HH.text "父級總輸出" ]
-    --   , HH.p_ [ HH.text ("父級來自元件：" <> state.childInfo)]
-    --   , HH.p_ [ HH.text ("父級結果：" <> state.message)]
-    --   , HH.p_ [ HH.text ("檔名：" <> state.fileName)]
-    --   , HH.p_
-    --     [
-    --       HH.text ("檔案內容：\n")
-    --       , makeDiv state.fileContent
-    --     ]
-    --   ]
     ]
 
 makeDiv :: forall w i. Array String -> HH.HTML w i

@@ -7033,8 +7033,13 @@
     var element2 = /* @__PURE__ */ function() {
       return element(Nothing.value);
     }();
+    var h1 = /* @__PURE__ */ element2("h1");
+    var h1_ = /* @__PURE__ */ h1([]);
+    var h2 = /* @__PURE__ */ element2("h2");
+    var h2_ = /* @__PURE__ */ h2([]);
     var h3 = /* @__PURE__ */ element2("h3");
     var h3_ = /* @__PURE__ */ h3([]);
+    var header = /* @__PURE__ */ element2("header");
     var img = function(props) {
       return element2("img")(props)([]);
     };
@@ -7043,8 +7048,18 @@
     };
     var label4 = /* @__PURE__ */ element2("label");
     var label_ = /* @__PURE__ */ label4([]);
+    var li = /* @__PURE__ */ element2("li");
+    var li_ = /* @__PURE__ */ li([]);
+    var main = /* @__PURE__ */ element2("main");
+    var ol = /* @__PURE__ */ element2("ol");
+    var ol_ = /* @__PURE__ */ ol([]);
     var p = /* @__PURE__ */ element2("p");
     var p_ = /* @__PURE__ */ p([]);
+    var section = /* @__PURE__ */ element2("section");
+    var span3 = /* @__PURE__ */ element2("span");
+    var span_ = /* @__PURE__ */ span3([]);
+    var strong = /* @__PURE__ */ element2("strong");
+    var strong_ = /* @__PURE__ */ strong([]);
     var table = /* @__PURE__ */ element2("table");
     var tbody = /* @__PURE__ */ element2("tbody");
     var tbody_ = /* @__PURE__ */ tbody([]);
@@ -7055,6 +7070,8 @@
     var div2 = /* @__PURE__ */ element2("div");
     var div_ = /* @__PURE__ */ div2([]);
     var button = /* @__PURE__ */ element2("button");
+    var aside = /* @__PURE__ */ element2("aside");
+    var unwrap2 = /* @__PURE__ */ unwrap();
     var prop2 = function(dictIsProp) {
       return prop(dictIsProp);
     };
@@ -7069,6 +7086,12 @@
     };
     var placeholder3 = /* @__PURE__ */ prop22("placeholder");
     var name15 = /* @__PURE__ */ prop22("name");
+    var class_ = /* @__PURE__ */ function() {
+      var $36 = prop22("className");
+      return function($37) {
+        return $36(unwrap2($37));
+      };
+    }();
     var checked2 = /* @__PURE__ */ prop1("checked");
     var attr2 = /* @__PURE__ */ function() {
       return attr(Nothing.value);
@@ -7855,7 +7878,7 @@
     var $$void6 = /* @__PURE__ */ $$void(functorEffect);
     var pure8 = /* @__PURE__ */ pure(applicativeEffect);
     var traverse_6 = /* @__PURE__ */ traverse_(applicativeEffect)(foldableMaybe);
-    var unwrap2 = /* @__PURE__ */ unwrap();
+    var unwrap3 = /* @__PURE__ */ unwrap();
     var when3 = /* @__PURE__ */ when(applicativeEffect);
     var not2 = /* @__PURE__ */ not(/* @__PURE__ */ heytingAlgebraFunction(/* @__PURE__ */ heytingAlgebraFunction(heytingAlgebraBoolean)));
     var identity10 = /* @__PURE__ */ identity(categoryFn);
@@ -7900,7 +7923,7 @@
             return unit;
           };
           var buildWidget2 = function(spec) {
-            var buildThunk2 = buildThunk(unwrap2)(spec);
+            var buildThunk2 = buildThunk(unwrap3)(spec);
             var $lazy_patch = $runtime_lazy8("patch", "Halogen.VDom.Driver", function() {
               return function(st, slot4) {
                 if (st instanceof Just) {
@@ -8149,7 +8172,7 @@
     var json = /* @__PURE__ */ function() {
       return Json.create;
     }();
-    var unwrap3 = /* @__PURE__ */ unwrap();
+    var unwrap4 = /* @__PURE__ */ unwrap();
     var Accept = /* @__PURE__ */ function() {
       function Accept2(value0) {
         this.value0 = value0;
@@ -8185,11 +8208,11 @@
     }();
     var value13 = function(v) {
       if (v instanceof Accept) {
-        return unwrap3(v.value0);
+        return unwrap4(v.value0);
       }
       ;
       if (v instanceof ContentType) {
-        return unwrap3(v.value0);
+        return unwrap4(v.value0);
       }
       ;
       if (v instanceof RequestHeader) {
@@ -8327,9 +8350,9 @@
       };
       return ResponseHeader2;
     }();
-    var unwrap4 = /* @__PURE__ */ unwrap();
+    var unwrap5 = /* @__PURE__ */ unwrap();
     var runExcept = function($3) {
-      return unwrap4(runExceptT($3));
+      return unwrap5(runExceptT($3));
     };
     function id2(x) {
       return x;
@@ -10609,11 +10632,11 @@
                     return show6(n);
                   }
                   ;
-                  throw new Error("Failed pattern match at Widget.CutVideo (line 321, column 5 - line 324, column 27): " + [n.constructor.name]);
+                  throw new Error("Failed pattern match at Widget.CutVideo (line 357, column 5 - line 360, column 27): " + [n.constructor.name]);
                 };
                 var pad2 = function(n) {
-                  var $127 = n < 10;
-                  if ($127) {
+                  var $125 = n < 10;
+                  if ($125) {
                     return "0" + show6(n);
                   }
                   ;
@@ -10631,8 +10654,8 @@
                 return function(op_or_ed) {
                   var makeLabel = function(index4) {
                     return label_([input2([type_19(InputRadio.value), name15("radio-group-" + op_or_ed), value14(text6(index4)), checked2(text6(index4) === function() {
-                      var $128 = op_or_ed === "op";
-                      if ($128) {
+                      var $126 = op_or_ed === "op";
+                      if ($126) {
                         return v.value1;
                       }
                       ;
@@ -10645,32 +10668,32 @@
                 };
               };
               var radioLabel = function(s) {
-                return div2([style("white-space: nowrap;")])([text5(s)]);
+                return div2([class_("timeline-label")])([text5(s)]);
               };
               var imgRow = function(maxFrames2) {
                 return function(dirPath) {
                   return function(totalFrames2) {
                     var pathToRender = function(path) {
-                      return img([src9(path), style("margin-right: 5px; height: 100px;")]);
+                      return img([src9(path), class_("frame-image")]);
                     };
                     var numToPath = function(num) {
                       return "file://" + (dirPath + ("/" + (pad5(num) + ".jpg")));
                     };
                     var makeTd = function(v1) {
                       if (v1 instanceof Just) {
-                        return td([style("padding: 2px;")])([v1.value0]);
+                        return td([class_("frame-cell")])([v1.value0]);
                       }
                       ;
                       if (v1 instanceof Nothing) {
-                        return td([style("padding: 2px;")])([]);
+                        return td([class_("frame-cell")])([]);
                       }
                       ;
-                      throw new Error("Failed pattern match at Widget.CutVideo (line 270, column 5 - line 270, column 69): " + [v1.constructor.name]);
+                      throw new Error("Failed pattern match at Widget.CutVideo (line 306, column 5 - line 306, column 82): " + [v1.constructor.name]);
                     };
-                    var imgTd = map31(function($251) {
+                    var imgTd = map31(function($250) {
                       return function(x) {
                         return makeTd(new Just(x));
-                      }(pathToRender(numToPath($251)));
+                      }(pathToRender(numToPath($250)));
                     })(range2(1)(totalFrames2));
                     var fillerTd = function() {
                       if (isAlignRight) {
@@ -10679,7 +10702,7 @@
                       ;
                       return [];
                     }();
-                    return tr([style("border-bottom: 1px solid #ccc;")])(append12(cons(makeTd(Nothing.value))(fillerTd))(imgTd));
+                    return tr([class_("timeline-video-row")])(append12(cons(makeTd(Nothing.value))(fillerTd))(imgTd));
                   };
                 };
               };
@@ -10703,26 +10726,26 @@
                 return eq12(job.state)(Done2.value);
               })(values(videoTable)));
               var totalFrames = map31(function() {
-                var $252 = fromMaybe(0);
-                return function($253) {
-                  return $252(function(v1) {
+                var $251 = fromMaybe(0);
+                return function($252) {
+                  return $251(function(v1) {
                     return v1.totalFrames;
-                  }($253));
+                  }($252));
                 };
               }())(doneJobs);
               var maxFrames = foldl2(max6)(0)(totalFrames);
               var edRow = addRowLabel(radioLabel("\u526A\u7247\u5C3E"))(topControls(maxFrames)("ed"));
               var opRow = addRowLabel(radioLabel("\u526A\u958B\u982D"))(topControls(maxFrames)("op"));
               var timeRow = addRowLabel(radioLabel("\u6B32\u522A\u9664\u6642\u9593"))(getTimeRow(maxFrames));
-              var dirPaths = map31(function($254) {
+              var dirPaths = map31(function($253) {
                 return normalizePath(function(v1) {
                   return v1.outputDir;
-                }($254));
+                }($253));
               })(doneJobs);
               var imgRows = map31(function(v1) {
                 return imgRow(maxFrames)(v1.value0)(v1.value1);
               })(zip(dirPaths)(totalFrames));
-              var htmlTable = table([style("border-collapse: collapse; width: 100%;")])(append12([timeRow])(append12([tbody_(function() {
+              var htmlTable = table([class_("timeline-table")])(append12([timeRow])(append12([tbody_(function() {
                 if (v.value0) {
                   return [opRow];
                 }
@@ -10751,16 +10774,16 @@
         return discard13(liftEffect7(log2("tempDirPath:")))(function() {
           return discard13(liftEffect7(logShow2(st.tempDirPath)))(function() {
             return modify_5(function(st1) {
-              var $142 = {};
-              for (var $143 in st1) {
-                if ({}.hasOwnProperty.call(st1, $143)) {
-                  $142[$143] = st1[$143];
+              var $140 = {};
+              for (var $141 in st1) {
+                if ({}.hasOwnProperty.call(st1, $141)) {
+                  $140[$141] = st1[$141];
                 }
                 ;
               }
               ;
-              $142.imgRender = allRows(st1.tempDirPath)(st1.isAlignRight)(v.value1.value0)(radio)(st1.ap_videoTable);
-              return $142;
+              $140.imgRender = allRows(st1.tempDirPath)(st1.isAlignRight)(v.value1.value0)(radio)(st1.ap_videoTable);
+              return $140;
             });
           });
         });
@@ -10782,7 +10805,7 @@
             return new Left("can't get result.result");
           }
           ;
-          throw new Error("Failed pattern match at Widget.CutVideo (line 452, column 36 - line 455, column 46): " + [v.result.constructor.name]);
+          throw new Error("Failed pattern match at Widget.CutVideo (line 488, column 36 - line 491, column 46): " + [v.result.constructor.name]);
         };
         return bind17(except4(lmap6(function(err) {
           return "internet error: " + printError(err);
@@ -10793,19 +10816,19 @@
             return bind17(except4(getRr(apiResp)))(function(rr) {
               if (apiResp.success) {
                 return discard24(lift5(modify_5(function(st) {
-                  var $158 = {};
-                  for (var $159 in st) {
-                    if ({}.hasOwnProperty.call(st, $159)) {
-                      $158[$159] = st[$159];
+                  var $156 = {};
+                  for (var $157 in st) {
+                    if ({}.hasOwnProperty.call(st, $157)) {
+                      $156[$157] = st[$157];
                     }
                     ;
                   }
                   ;
-                  $158.message = "\u5207\u7247\u5730\u5740\u4F4D\u65BC\uFF1A" + rr.tempDirPath;
-                  $158.tempDirPath = rr.tempDirPath;
-                  $158.requestID = rr.requestID;
-                  $158.showAPslot = true;
-                  return $158;
+                  $156.message = "\u5207\u7247\u5730\u5740\u4F4D\u65BC\uFF1A" + rr.tempDirPath;
+                  $156.tempDirPath = rr.tempDirPath;
+                  $156.requestID = rr.requestID;
+                  $156.showAPslot = true;
+                  return $156;
                 })))(function() {
                   return lift5(updateImgRender1);
                 });
@@ -10829,31 +10852,31 @@
         ;
         if (action2 instanceof InputChanged_fps) {
           return modify_5(function(st) {
-            var $167 = {};
-            for (var $168 in st) {
-              if ({}.hasOwnProperty.call(st, $168)) {
-                $167[$168] = st[$168];
+            var $165 = {};
+            for (var $166 in st) {
+              if ({}.hasOwnProperty.call(st, $166)) {
+                $165[$166] = st[$166];
               }
               ;
             }
             ;
-            $167.fps = action2.value0;
-            return $167;
+            $165.fps = action2.value0;
+            return $165;
           });
         }
         ;
         if (action2 instanceof InputChanged_scale) {
           return modify_5(function(st) {
-            var $171 = {};
-            for (var $172 in st) {
-              if ({}.hasOwnProperty.call(st, $172)) {
-                $171[$172] = st[$172];
+            var $169 = {};
+            for (var $170 in st) {
+              if ({}.hasOwnProperty.call(st, $170)) {
+                $169[$170] = st[$170];
               }
               ;
             }
             ;
-            $171.scale = action2.value0;
-            return $171;
+            $169.scale = action2.value0;
+            return $169;
           });
         }
         ;
@@ -10867,17 +10890,17 @@
                 ;
                 return discard13(liftEffect7(log2("Selected files: " + show22(result.filePaths))))(function() {
                   return modify_5(function(st) {
-                    var $176 = {};
-                    for (var $177 in st) {
-                      if ({}.hasOwnProperty.call(st, $177)) {
-                        $176[$177] = st[$177];
+                    var $174 = {};
+                    for (var $175 in st) {
+                      if ({}.hasOwnProperty.call(st, $175)) {
+                        $174[$175] = st[$175];
                       }
                       ;
                     }
                     ;
-                    $176.filePaths = result.filePaths;
-                    $176.message = "file1: " + fromMaybe("")(index2(result.filePaths)(0));
-                    return $176;
+                    $174.filePaths = result.filePaths;
+                    $174.message = "file1: " + fromMaybe("")(index2(result.filePaths)(0));
+                    return $174;
                   });
                 });
               });
@@ -10887,34 +10910,34 @@
         ;
         if (action2 instanceof ClickButton2) {
           return bind10(get5)(function(old_st) {
-            var $179 = eq22(old_st.filePaths)([]);
-            if ($179) {
+            var $177 = eq22(old_st.filePaths)([]);
+            if ($177) {
               return modify_5(function(st) {
-                var $180 = {};
-                for (var $181 in st) {
-                  if ({}.hasOwnProperty.call(st, $181)) {
-                    $180[$181] = st[$181];
+                var $178 = {};
+                for (var $179 in st) {
+                  if ({}.hasOwnProperty.call(st, $179)) {
+                    $178[$179] = st[$179];
                   }
                   ;
                 }
                 ;
-                $180.message = "\u8ACB\u5148\u9078\u53D6\u6A94\u6848";
-                return $180;
+                $178.message = "\u8ACB\u5148\u9078\u53D6\u6A94\u6848";
+                return $178;
               });
             }
             ;
             var v = checkInput(old_st.fps)(old_st.scale);
             return discard13(modify_5(function(st) {
-              var $184 = {};
-              for (var $185 in st) {
-                if ({}.hasOwnProperty.call(st, $185)) {
-                  $184[$185] = st[$185];
+              var $182 = {};
+              for (var $183 in st) {
+                if ({}.hasOwnProperty.call(st, $183)) {
+                  $182[$183] = st[$183];
                 }
                 ;
               }
               ;
-              $184.askProgressMsg = "\u767C\u9001\u8ACB\u6C42...";
-              return $184;
+              $182.askProgressMsg = "\u767C\u9001\u8ACB\u6C42...";
+              return $182;
             }))(function() {
               return bind10(liftAff2(request3({
                 username: defaultRequest.username,
@@ -10931,16 +10954,16 @@
                   return discard13(function() {
                     if (exceptT instanceof Right) {
                       return discard13(modify_5(function(st) {
-                        var $188 = {};
-                        for (var $189 in st) {
-                          if ({}.hasOwnProperty.call(st, $189)) {
-                            $188[$189] = st[$189];
+                        var $186 = {};
+                        for (var $187 in st) {
+                          if ({}.hasOwnProperty.call(st, $187)) {
+                            $186[$187] = st[$187];
                           }
                           ;
                         }
                         ;
-                        $188.askProgressMsg = "\u8655\u7406\u4E2D...";
-                        return $188;
+                        $186.askProgressMsg = "\u8655\u7406\u4E2D...";
+                        return $186;
                       }))(function() {
                         return pure18(unit);
                       });
@@ -10948,20 +10971,20 @@
                     ;
                     if (exceptT instanceof Left) {
                       return modify_5(function(st) {
-                        var $192 = {};
-                        for (var $193 in st) {
-                          if ({}.hasOwnProperty.call(st, $193)) {
-                            $192[$193] = st[$193];
+                        var $190 = {};
+                        for (var $191 in st) {
+                          if ({}.hasOwnProperty.call(st, $191)) {
+                            $190[$191] = st[$191];
                           }
                           ;
                         }
                         ;
-                        $192.message = exceptT.value0;
-                        return $192;
+                        $190.message = exceptT.value0;
+                        return $190;
                       });
                     }
                     ;
-                    throw new Error("Failed pattern match at Widget.CutVideo (line 372, column 7 - line 377, column 51): " + [exceptT.constructor.name]);
+                    throw new Error("Failed pattern match at Widget.CutVideo (line 408, column 7 - line 413, column 51): " + [exceptT.constructor.name]);
                   }())(function() {
                     return pure18(unit);
                   });
@@ -10974,16 +10997,16 @@
         if (action2 instanceof ClickButton_AlignRight) {
           return bind10(get5)(function(st) {
             return discard13(modify_5(function(st1) {
-              var $200 = {};
-              for (var $201 in st1) {
-                if ({}.hasOwnProperty.call(st1, $201)) {
-                  $200[$201] = st1[$201];
+              var $198 = {};
+              for (var $199 in st1) {
+                if ({}.hasOwnProperty.call(st1, $199)) {
+                  $198[$199] = st1[$199];
                 }
                 ;
               }
               ;
-              $200.isAlignRight = !st1.isAlignRight;
-              return $200;
+              $198.isAlignRight = !st1.isAlignRight;
+              return $198;
             }))(function() {
               return updateImgRender1;
             });
@@ -10994,31 +11017,31 @@
           return bind10(get5)(function(st) {
             if (action2.value0 === "op") {
               return modify_5(function(st1) {
-                var $204 = {};
-                for (var $205 in st1) {
-                  if ({}.hasOwnProperty.call(st1, $205)) {
-                    $204[$205] = st1[$205];
+                var $202 = {};
+                for (var $203 in st1) {
+                  if ({}.hasOwnProperty.call(st1, $203)) {
+                    $202[$203] = st1[$203];
                   }
                   ;
                 }
                 ;
-                $204.opTime = action2.value1;
-                return $204;
+                $202.opTime = action2.value1;
+                return $202;
               });
             }
             ;
             if (action2.value0 === "ed") {
               return modify_5(function(st1) {
-                var $207 = {};
-                for (var $208 in st1) {
-                  if ({}.hasOwnProperty.call(st1, $208)) {
-                    $207[$208] = st1[$208];
+                var $205 = {};
+                for (var $206 in st1) {
+                  if ({}.hasOwnProperty.call(st1, $206)) {
+                    $205[$206] = st1[$206];
                   }
                   ;
                 }
                 ;
-                $207.edTime = action2.value1;
-                return $207;
+                $205.edTime = action2.value1;
+                return $205;
               });
             }
             ;
@@ -11029,16 +11052,16 @@
         if (action2 instanceof ClickButton_checkbox_op) {
           return bind10(get5)(function(st) {
             return discard13(modify_5(function(st1) {
-              var $212 = {};
-              for (var $213 in st1) {
-                if ({}.hasOwnProperty.call(st1, $213)) {
-                  $212[$213] = st1[$213];
+              var $210 = {};
+              for (var $211 in st1) {
+                if ({}.hasOwnProperty.call(st1, $211)) {
+                  $210[$211] = st1[$211];
                 }
                 ;
               }
               ;
-              $212.isOpTimeEnable = !st1.isOpTimeEnable;
-              return $212;
+              $210.isOpTimeEnable = !st1.isOpTimeEnable;
+              return $210;
             }))(function() {
               return updateImgRender1;
             });
@@ -11048,16 +11071,16 @@
         if (action2 instanceof ClickButton_checkbox_ed) {
           return bind10(get5)(function(st) {
             return discard13(modify_5(function(st1) {
-              var $215 = {};
-              for (var $216 in st1) {
-                if ({}.hasOwnProperty.call(st1, $216)) {
-                  $215[$216] = st1[$216];
+              var $213 = {};
+              for (var $214 in st1) {
+                if ({}.hasOwnProperty.call(st1, $214)) {
+                  $213[$214] = st1[$214];
                 }
                 ;
               }
               ;
-              $215.isEdTimeEnable = !st1.isEdTimeEnable;
-              return $215;
+              $213.isEdTimeEnable = !st1.isEdTimeEnable;
+              return $213;
             }))(function() {
               return updateImgRender1;
             });
@@ -11067,16 +11090,16 @@
         if (action2 instanceof AskProgress) {
           if (action2.value0 instanceof Msg) {
             return discard13(modify_5(function(st) {
-              var $219 = {};
-              for (var $220 in st) {
-                if ({}.hasOwnProperty.call(st, $220)) {
-                  $219[$220] = st[$220];
+              var $217 = {};
+              for (var $218 in st) {
+                if ({}.hasOwnProperty.call(st, $218)) {
+                  $217[$218] = st[$218];
                 }
                 ;
               }
               ;
-              $219.askProgressMsg = action2.value0.value0;
-              return $219;
+              $217.askProgressMsg = action2.value0.value0;
+              return $217;
             }))(function() {
               return updateImgRender1;
             });
@@ -11084,16 +11107,16 @@
           ;
           if (action2.value0 instanceof VideoTable) {
             return discard13(modify_5(function(st) {
-              var $223 = {};
-              for (var $224 in st) {
-                if ({}.hasOwnProperty.call(st, $224)) {
-                  $223[$224] = st[$224];
+              var $221 = {};
+              for (var $222 in st) {
+                if ({}.hasOwnProperty.call(st, $222)) {
+                  $221[$222] = st[$222];
                 }
                 ;
               }
               ;
-              $223.ap_videoTable = action2.value0.value0;
-              return $223;
+              $221.ap_videoTable = action2.value0.value0;
+              return $221;
             }))(function() {
               return updateImgRender1;
             });
@@ -11101,91 +11124,91 @@
           ;
           if (action2.value0 instanceof Done3) {
             return discard13(modify_5(function(st) {
-              var $227 = {};
-              for (var $228 in st) {
-                if ({}.hasOwnProperty.call(st, $228)) {
-                  $227[$228] = st[$228];
+              var $225 = {};
+              for (var $226 in st) {
+                if ({}.hasOwnProperty.call(st, $226)) {
+                  $225[$226] = st[$226];
                 }
                 ;
               }
               ;
-              $227.askProgressMsg = "\u5207\u7247\u5B8C\u6210";
-              $227.showAPslot = true;
-              $227.showCCCslot = true;
-              return $227;
+              $225.askProgressMsg = "\u5207\u7247\u5B8C\u6210";
+              $225.showAPslot = true;
+              $225.showCCCslot = true;
+              return $225;
             }))(function() {
               return updateImgRender1;
             });
           }
           ;
-          throw new Error("Failed pattern match at Widget.CutVideo (line 398, column 5 - line 412, column 24): " + [action2.value0.constructor.name]);
+          throw new Error("Failed pattern match at Widget.CutVideo (line 434, column 5 - line 448, column 24): " + [action2.value0.constructor.name]);
         }
         ;
         if (action2 instanceof CutCutCut) {
           if (action2.value0.value0 instanceof Ready) {
             return modify_5(function(st) {
-              var $232 = {};
-              for (var $233 in st) {
-                if ({}.hasOwnProperty.call(st, $233)) {
-                  $232[$233] = st[$233];
+              var $230 = {};
+              for (var $231 in st) {
+                if ({}.hasOwnProperty.call(st, $231)) {
+                  $230[$231] = st[$231];
                 }
                 ;
               }
               ;
-              $232.cutcutcutMsg = "\u5DF2\u555F\u52D5";
-              return $232;
+              $230.cutcutcutMsg = "\u5DF2\u555F\u52D5";
+              return $230;
             });
           }
           ;
           if (action2.value0.value0 instanceof Handling) {
             return modify_5(function(st) {
-              var $236 = {};
-              for (var $237 in st) {
-                if ({}.hasOwnProperty.call(st, $237)) {
-                  $236[$237] = st[$237];
+              var $234 = {};
+              for (var $235 in st) {
+                if ({}.hasOwnProperty.call(st, $235)) {
+                  $234[$235] = st[$235];
                 }
                 ;
               }
               ;
-              $236.cutcutcutMsg = "\u526A\u8F2F\u4E2D...";
-              return $236;
+              $234.cutcutcutMsg = "\u526A\u8F2F\u4E2D...";
+              return $234;
             });
           }
           ;
           if (action2.value0.value0 instanceof Done4) {
             return modify_5(function(st) {
-              var $240 = {};
-              for (var $241 in st) {
-                if ({}.hasOwnProperty.call(st, $241)) {
-                  $240[$241] = st[$241];
+              var $238 = {};
+              for (var $239 in st) {
+                if ({}.hasOwnProperty.call(st, $239)) {
+                  $238[$239] = st[$239];
                 }
                 ;
               }
               ;
-              $240.cutcutcutMsg = "\u526A\u8F2F\u5B8C\u6210";
-              return $240;
+              $238.cutcutcutMsg = "\u526A\u8F2F\u5B8C\u6210";
+              return $238;
             });
           }
           ;
           if (action2.value0.value0 instanceof Done_Error) {
             return modify_5(function(st) {
-              var $244 = {};
-              for (var $245 in st) {
-                if ({}.hasOwnProperty.call(st, $245)) {
-                  $244[$245] = st[$245];
+              var $242 = {};
+              for (var $243 in st) {
+                if ({}.hasOwnProperty.call(st, $243)) {
+                  $242[$243] = st[$243];
                 }
                 ;
               }
               ;
-              $244.cutcutcutMsg = "\u526A\u8F2F\u5B8C\u6210 \u51FA\u73FE\u932F\u8AA4";
-              return $244;
+              $242.cutcutcutMsg = "\u526A\u8F2F\u5B8C\u6210 \u51FA\u73FE\u932F\u8AA4";
+              return $242;
             });
           }
           ;
-          throw new Error("Failed pattern match at Widget.CutVideo (line 414, column 5 - line 418, column 88): " + [action2.value0.constructor.name]);
+          throw new Error("Failed pattern match at Widget.CutVideo (line 450, column 5 - line 454, column 88): " + [action2.value0.constructor.name]);
         }
         ;
-        throw new Error("Failed pattern match at Widget.CutVideo (line 330, column 23 - line 418, column 88): " + [action2.constructor.name]);
+        throw new Error("Failed pattern match at Widget.CutVideo (line 366, column 23 - line 454, column 88): " + [action2.constructor.name]);
       };
     };
     var _wcccSlot = /* @__PURE__ */ function() {
@@ -11198,6 +11221,17 @@
       var component12 = component(dictMonadAff);
       var component22 = component2(dictMonadAff);
       return function(state3) {
+        var checkbox = function(name17) {
+          return function(checked3) {
+            return function(label5) {
+              return function(action2) {
+                return label4([class_("check-option")])([input2([type_19(InputCheckbox.value), name15(name17), checked2(checked3), onChange(function(v) {
+                  return action2;
+                })]), text5(label5)]);
+              };
+            };
+          };
+        };
         var args_ccc = {
           filePaths: state3.filePaths,
           isOpTimeEnable: state3.isOpTimeEnable,
@@ -11209,32 +11243,33 @@
           requestID: state3.requestID,
           videoNames: state3.filePaths
         };
-        return div_([div2([style("display: flex; gap: 10px;")])([button([onClick(function(v) {
+        return div2([class_("cut-tool")])([section([class_("control-panel")])([div2([class_("file-row")])([button([class_("primary-button"), onClick(function(v) {
           return ClickFileButton.value;
-        })])([text5("\u9078\u53D6\u6A94\u6848")]), p_([text5(fromMaybe("\u5C1A\u672A\u9078\u53D6\u6A94\u6848")(index2(state3.filePaths)(0)))])]), div2([style("display: flex; gap: 10px;")])([text5("\u6BCF\u79D2\u7684\u5F71\u683C\u6578\uFF1A"), input2([type_19(InputText.value), placeholder3("fps \u9810\u8A2D6"), value14(state3.fps), onValueInput(function(s) {
+        })])([text5("\u9078\u64C7\u5F71\u7247")]), div2([class_("file-summary")])([span_([text5("\u76EE\u524D\u6A94\u6848")]), strong_([text5(fromMaybe("\u5C1A\u672A\u9078\u64C7\u6A94\u6848")(index2(state3.filePaths)(0)))])])]), div2([class_("input-grid")])([label_([span_([text5("\u6BCF\u79D2\u62BD\u5E40\u6578")]), input2([type_19(InputText.value), placeholder3("\u9810\u8A2D 6"), value14(state3.fps), onValueInput(function(s) {
           return new InputChanged_fps(s);
-        })]), text5("\u7E2E\u653E\u5927\u5C0F\uFF1A"), input2([type_19(InputText.value), placeholder3("scale \u9810\u8A2D160"), value14(state3.scale), onValueInput(function(s) {
+        })])]), label_([span_([text5("\u7E2E\u5716\u5BEC\u5EA6")]), input2([type_19(InputText.value), placeholder3("\u9810\u8A2D 160"), value14(state3.scale), onValueInput(function(s) {
           return new InputChanged_scale(s);
-        })])]), button([onClick(function(v) {
+        })])])]), div2([class_("option-row")])([checkbox("checkbox-align")(state3.isAlignRight)("\u5C0D\u9F4A\u7247\u5C3E")(ClickButton_AlignRight.value), checkbox("checkbox-op")(state3.isOpTimeEnable)("\u986F\u793A\u958B\u982D\u5207\u9EDE")(ClickButton_checkbox_op.value), checkbox("checkbox-ed")(state3.isEdTimeEnable)("\u986F\u793A\u7247\u5C3E\u5207\u9EDE")(ClickButton_checkbox_ed.value)]), div2([class_("action-row")])([button([class_("primary-button"), onClick(function(v) {
           return ClickButton2.value;
-        })])([text5("\u9001\u51FA")]), label4([])([input2([type_19(InputCheckbox.value), name15("checkbox-op"), checked2(state3.isAlignRight), onChange(function(v) {
-          return ClickButton_AlignRight.value;
-        })]), text5("\u5C0D\u9F4A\u7247\u5C3E")]), label4([])([input2([type_19(InputCheckbox.value), name15("checkbox-op"), checked2(state3.isOpTimeEnable), onChange(function(v) {
-          return ClickButton_checkbox_op.value;
-        })]), text5("\u986F\u793A\u958B\u982D")]), label4([])([input2([type_19(InputCheckbox.value), name15("checkbox-ed"), checked2(state3.isEdTimeEnable), onChange(function(v) {
-          return ClickButton_checkbox_ed.value;
-        })]), text5("\u986F\u793A\u7247\u5C3E")]), p_([text5(state3.message)]), div_([p_([text5("AskProgress\u5143\u4EF6: " + state3.askProgressMsg)]), function() {
+        })])([text5("\u7522\u751F\u6642\u9593\u8EF8")])])]), section([class_("progress-panel")])([div2([class_("metric")])([span_([text5("\u62BD\u5E40\u9032\u5EA6")]), strong_([text5(state3.askProgressMsg)])]), div2([class_("metric")])([span_([text5("\u526A\u8F2F\u72C0\u614B")]), strong_([text5(state3.cutcutcutMsg)])]), function() {
           if (state3.showAPslot) {
             return slot1(_wapSlot)(unit)(component12)(args_ap)(AskProgress.create);
           }
           ;
           return text5("");
-        }()]), div2([style("display: flex; overflow-x: auto;")])([state3.imgRender]), div_([p_([text5("Cutcutcut\u5143\u4EF6: " + state3.cutcutcutMsg)]), function() {
+        }()]), section([class_("timeline-panel")])([div2([class_("section-title compact")])([div_([h3_([text5("\u6642\u9593\u8EF8\u9810\u89BD")]), p_([text5("\u62BD\u5E40\u5B8C\u6210\u5F8C\uFF0C\u9078\u64C7\u958B\u59CB\u8207\u7D50\u675F\u4F4D\u7F6E\u3002")])])]), div2([class_("timeline-scroll")])([state3.imgRender])]), section([class_("cut-panel")])([function() {
+          var $248 = state3.message === "";
+          if ($248) {
+            return text5("");
+          }
+          ;
+          return div2([class_("output-location")])([span_([text5("\u8F38\u51FA\u4F4D\u7F6E")]), strong_([text5(state3.message)])]);
+        }(), function() {
           if (state3.showCCCslot) {
             return slot22(_wcccSlot)(unit)(component22)(args_ccc)(CutCutCut.create);
           }
           ;
-          return text5("");
+          return div2([class_("empty-state")])([text5("\u6642\u9593\u8EF8\u5B8C\u6210\u5F8C\u5373\u53EF\u958B\u59CB\u526A\u8F2F\u3002")]);
         }()])]);
       };
     };
@@ -11480,7 +11515,7 @@
             });
           }
           ;
-          throw new Error("Failed pattern match at Main (line 149, column 22 - line 151, column 84): " + [v.value0.constructor.name]);
+          throw new Error("Failed pattern match at Main (line 140, column 22 - line 142, column 84): " + [v.value0.constructor.name]);
         }
         ;
         if (v instanceof DownloadFile) {
@@ -11516,7 +11551,7 @@
             });
           }
           ;
-          throw new Error("Failed pattern match at Main (line 152, column 26 - line 154, column 93): " + [v.value0.constructor.name]);
+          throw new Error("Failed pattern match at Main (line 143, column 26 - line 145, column 93): " + [v.value0.constructor.name]);
         }
         ;
         if (v instanceof UploadFile) {
@@ -11552,7 +11587,7 @@
             });
           }
           ;
-          throw new Error("Failed pattern match at Main (line 155, column 24 - line 157, column 91): " + [v.value0.constructor.name]);
+          throw new Error("Failed pattern match at Main (line 146, column 24 - line 148, column 91): " + [v.value0.constructor.name]);
         }
         ;
         if (v instanceof CutVideo) {
@@ -11571,7 +11606,7 @@
           });
         }
         ;
-        throw new Error("Failed pattern match at Main (line 144, column 16 - line 159, column 84): " + [v.constructor.name]);
+        throw new Error("Failed pattern match at Main (line 135, column 16 - line 150, column 84): " + [v.constructor.name]);
       };
     };
     var _wcvSlot = /* @__PURE__ */ function() {
@@ -11580,7 +11615,7 @@
     var render4 = function(dictMonadAff) {
       var component22 = component3(dictMonadAff);
       return function(state3) {
-        return div_([div2([style("display: flex; gap: 10px;")])([div2([style("border-right: 1px solid #ccc; padding-right: 10px;")])([h3_([text5("\u7522\u751F\u5207\u7247")]), p_([text5("\u7D50\u679C\uFF1A" + state3.childInfo)]), slot3(_wcvSlot)(unit)(component22)(unit)(CutVideo.create)])])]);
+        return main([class_("app-shell")])([header([class_("app-header")])([div_([p([class_("eyebrow")])([text5("Haskell + PureScript + Electron")]), h1_([text5("Multiple Cut Video")]), p([class_("subtitle")])([text5("\u7528\u684C\u9762\u4ECB\u9762\u4E32\u63A5\u5F8C\u7AEF HTTP server\uFF0C\u5B8C\u6210\u5F71\u7247\u62BD\u5E40\u3001\u9032\u5EA6\u8F2A\u8A62\u8207\u591A\u6A94\u5207\u7247\u6D41\u7A0B\u3002")])]), div2([class_("status-panel")])([span3([class_("status-label")])([text5("\u76EE\u524D\u5143\u4EF6")]), strong_([text5(state3.childInfo)])])]), section([class_("workflow-grid")])([aside([class_("workflow-rail")])([h2_([text5("\u7CFB\u7D71\u6D41\u7A0B")]), ol_([li_([text5("Electron \u555F\u52D5 Haskell backend")]), li_([text5("Halogen UI \u9078\u53D6\u5F71\u7247\u8207\u9001\u51FA\u53C3\u6578")]), li_([text5("\u5F8C\u7AEF\u5EFA\u7ACB request id \u4E26\u958B\u59CB\u62BD\u5E40")]), li_([text5("\u524D\u7AEF\u8F2A\u8A62\u9032\u5EA6\u4E26\u5448\u73FE\u6642\u9593\u8EF8")]), li_([text5("\u4F9D\u7167\u8D77\u8A16\u6642\u9593\u9001\u51FA\u5207\u7247\u8ACB\u6C42")])])]), section([class_("workspace")])([div2([class_("section-title")])([div_([h2_([text5("\u5F71\u7247\u5207\u7247\u5DE5\u4F5C\u53F0")]), p_([text5("\u9078\u6A94\u3001\u62BD\u5E40\u3001\u6307\u5B9A\u5207\u9EDE\uFF0C\u6700\u5F8C\u9001\u51FA\u526A\u8F2F\u3002")])]), div2([class_("result-pill")])([text5("\u7D50\u679C\uFF1A" + state3.message)])]), slot3(_wcvSlot)(unit)(component22)(unit)(CutVideo.create)])])]);
       };
     };
     var component4 = function(dictMonadAff) {
